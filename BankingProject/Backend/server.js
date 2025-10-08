@@ -13,7 +13,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 
 // We are loading the enviroments variables from .env
-dotenv.config();
+dotenv.config({ path: './.env' });
 
 //Initialise express app
 const app = express();
@@ -41,10 +41,13 @@ app.use('/api',routes);
 
 //Add basic route
 
-//use MkCert generated certificates for HTTPS
-const Options ={
+//use MkCert generated certificates for HTTPS (only load if HTTPS is enabled)
+let Options = {};
+if (USE_HTTPS) {
+  Options = {
     key: fs.readFileSync('./Certs/example.local-key.pem'),
     cert: fs.readFileSync('./Certs/example.local.pem')
+  };
 }
 
 //Global rate limiting (100 requests per 15 minutes per IP)
@@ -71,9 +74,15 @@ const loginLimiter = rateLimit({
 //Adding MongoDB Connection
 connectDB();
 
-
-// starting HTTPS server
-https.createServer(Options,app).listen(PORT,()=>{
-console.log(`Https Server running on port ${PORT}`)
-
-})
+// Start server based on environment
+if (USE_HTTPS) {
+  // starting HTTPS server
+  https.createServer(Options, app).listen(PORT, () => {
+    console.log(`HTTPS Server running on port ${PORT}`);
+  });
+} else {
+  // starting HTTP server for development
+  app.listen(PORT, () => {
+    console.log(`HTTP Server running on port ${PORT}`);
+  });
+}

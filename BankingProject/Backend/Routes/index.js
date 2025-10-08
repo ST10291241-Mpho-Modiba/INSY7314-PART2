@@ -4,6 +4,15 @@ import router2 from './authRoutes.js'
 import paymentRouter from './payment.js'
 const router = express.Router();
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({ 
+    msg: 'Backend server is running successfully!', 
+    timestamp: new Date().toISOString(),
+    status: 'healthy'
+  });
+});
+
 router.use('/auth',router2);
 router.use('/payments',paymentRouter);
 //router.use('/user',router3);

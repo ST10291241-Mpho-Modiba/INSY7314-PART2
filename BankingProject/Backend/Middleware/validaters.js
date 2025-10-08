@@ -16,7 +16,7 @@ export const validatePayment =
   (req,res,next)=>{
     const error = validationResult(req);
     if(!error.isEmpty()){
-        return res.status(400).json({errors: error.array})
+        return res.status(400).json({errors: error.array()})
     }
     next();
 }
@@ -38,12 +38,15 @@ body('email')
 body('password')
 .notEmpty()
 .withMessage('Password is required')
-.isLength({min:6}).withMessage('Password must be at least 6 characters long'),
+.isLength({min:8})
+.withMessage('Password must be at least 8 characters long')
+.matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/)
+.withMessage('Password must contain at least 1 lowercase, 1 uppercase, 1 digit, and 1 special character'),
 
 (req,res,next)=>{
     const error = validationResult(req);
     if(!error.isEmpty()){
-        return res.status(400).json({errors: error.array})
+        return res.status(400).json({errors: error.array()})
     }
     next();
 }
@@ -62,7 +65,7 @@ body('password')
 (req,res,next)=>{
     const error = validationResult(req);
     if(!error.isEmpty()){
-        return res.status(400).json({errors: error.array})
+        return res.status(400).json({errors: error.array()})
     }
     next();
 }

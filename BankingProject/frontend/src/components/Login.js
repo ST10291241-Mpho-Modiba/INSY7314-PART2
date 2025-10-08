@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axiosConfig';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,13 +27,22 @@ const Login = () => {
     }
 
     try {
-      const res = await axios.post('/api/auth/login', formData);
+      const res = await api.post('/api/auth/login', formData);
       localStorage.setItem('token', res.data.token);
-      axios.defaults.headers.common['x-auth-token'] = res.data.token;
       setError('');
       navigate('/payments');
     } catch (err) {
       setError(err.response?.data?.msg || 'Login failed');
+    }
+  };
+
+  const testConnection = async () => {
+    try {
+      setConnectionStatus('Testing connection...');
+      const res = await api.get('/api/health');
+      setConnectionStatus(`✅ ${res.data.msg} (${res.data.status})`);
+    } catch (err) {
+      setConnectionStatus(`❌ Connection failed: ${err.message}`);
     }
   };
 
@@ -60,6 +70,14 @@ const Login = () => {
       />
       {error && <p className="error">{error}</p>}
       <button type="submit">Login</button>
+      
+      <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }}>
+        <h3>Connection Test</h3>
+        <button type="button" onClick={testConnection} style={{ marginBottom: '10px' }}>
+          Test Backend Connection
+        </button>
+        {connectionStatus && <p style={{ fontSize: '14px', margin: '5px 0' }}>{connectionStatus}</p>}
+      </div>
     </form>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axiosConfig';
 
 const Signup = () => {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
@@ -31,13 +31,18 @@ const Signup = () => {
     }
 
     try {
-      const res = await axios.post('/api/auth/signup', formData);
+      const res = await api.post('/api/auth/signup', formData);
       localStorage.setItem('token', res.data.token);
-      axios.defaults.headers.common['x-auth-token'] = res.data.token;
       setError('');
       navigate('/payments');
     } catch (err) {
-      setError(err.response?.data?.msg || 'Signup failed');
+      if (err.response?.data?.errors) {
+        // Handle validation errors from backend
+        const errorMessages = err.response.data.errors.map(error => error.msg).join(', ');
+        setError(errorMessages);
+      } else {
+        setError(err.response?.data?.msg || 'Signup failed');
+      }
     }
   };
 

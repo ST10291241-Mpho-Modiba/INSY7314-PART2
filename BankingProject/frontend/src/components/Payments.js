@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axiosConfig';
 
 const Payments = () => {
   const [formData, setFormData] = useState({ amount: '', currency: 'USD', recipient: '' });
   const [msg, setMsg] = useState('');
-  const token = localStorage.getItem('token');
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -27,9 +26,7 @@ const Payments = () => {
     }
 
     try {
-      const res = await axios.post('/api/payments/process', formData, {
-        headers: { 'x-auth-token': token }
-      });
+      const res = await api.post('/api/payments/process', formData);
       setMsg(res.data.msg);
     } catch (err) {
       setMsg(err.response?.data?.msg || 'Payment failed');
