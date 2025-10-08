@@ -11,25 +11,16 @@ const generateToken =(newUser)=>{
 export const signUpUser = async({username,email,password})=>{
     // Check if database is connected
     if (mongoose.connection.readyState !== 1) {
-        // No database connection - create mock user for development
-        const mockUser = {
-            id: Date.now().toString(), // Simple ID generation
-            username,
-            email,
-            password // In real app, this would be hashed
-        };
-        const token = generateToken(mockUser);
-        return{
-            newUser:{id: mockUser.id, username: mockUser.username, email: mockUser.email},
-            token
-        };
+        throw new Error('Database connection not available. Please try again later.');
     }
 
-    // Normal database operations when connected
+    // Check for existing user
     const existingUser = await User.findOne({$or:[{email},{username}]});
     if(existingUser){
         throw new Error('Username or email already in use');
     }
+    
+    // Create new user
     const newUser = new User({username,email,password});
     await newUser.save();
     const token = generateToken(newUser);
@@ -41,35 +32,26 @@ export const signUpUser = async({username,email,password})=>{
 export const LoginUser = async({email,password})=>{
     // Check if database is connected
     if (mongoose.connection.readyState !== 1) {
-        // No database connection - create mock login for development
-        // In development, accept any email/password combination
-        const mockUser = {
-            id: Date.now().toString(),
-            username: email.split('@')[0], // Use email prefix as username
-            email,
-        };
-        const token = generateToken(mockUser);
-        return{
-            newUser:{id: mockUser.id, username: mockUser.username, email: mockUser.email},
-            token
-        };
+        throw new Error('Database connection not available. Please try again later.');
     }
 
-    // Normal database operations when connected
+    // Find user by email
     const user = await User.findOne({email});
     if(!user){
-        throw new Error('Invaild email');
+        throw new Error('Invalid email');
     }
+    
+    // Verify password
     const pepper = process.env.PEPPER;
-    //const isMatch = await bcrypt.compare(password + pepper, user.password);
-    const isMatch = await user.comparePasswords(password+pepper
-        
-    );
+    const isMatch = await user.comparePasswords(password + pepper);
     if(!isMatch){
-        throw new Error('Invaild password');
+        throw new Error('Invalid password');
     }
+    
+    // Generate token and return user data
     const token = generateToken(user);
     return{
-        newUser:{id: user._id, username: user.username, email: user.email}
-        ,token};
+        newUser:{id: user._id, username: user.username, email: user.email},
+        token
+    };
 };

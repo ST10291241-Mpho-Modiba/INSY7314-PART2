@@ -1,8 +1,351 @@
-.App { text-align: center; max-width: 600px; margin: 0 auto; padding: 20px; }
-header { border-bottom: 1px solid #ccc; margin-bottom: 20px; }
-form { display: flex; flex-direction: column; gap: 10px; max-width: 300px; margin: 0 auto; }
-input, select, button { padding: 10px; font-size: 16px; }
-button { background: #007bff; color: white; border: none; cursor: pointer; }
-button:hover { background: #0056b3; }
-.error, .msg { color: red; } .msg { color: green; }
-nav a { margin: 0 10px; text-decoration: none; color: #007bff; }
+/* Basic App Styles */
+.App { 
+  text-align: center; 
+  max-width: 600px; 
+  margin: 0 auto; 
+  padding: 20px; 
+}
+
+header { 
+  border-bottom: 1px solid #ccc; 
+  margin-bottom: 20px; 
+}
+
+form { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+  max-width: 300px; 
+  margin: 0 auto; 
+}
+
+input, select, button { 
+  padding: 10px; 
+  font-size: 16px; 
+}
+
+button { 
+  background: #007bff; 
+  color: white; 
+  border: none; 
+  cursor: pointer; 
+}
+
+button:hover { 
+  background: #0056b3; 
+}
+
+.error, .msg { 
+  color: red; 
+} 
+
+.msg { 
+  color: green; 
+}
+
+nav a { 
+  margin: 0 10px; 
+  text-decoration: none; 
+  color: #007bff; 
+}
+
+/* Accessibility Styles */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only:focus,
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Focus Management */
+.using-keyboard *:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.using-keyboard button:focus,
+.using-keyboard input:focus,
+.using-keyboard select:focus,
+.using-keyboard textarea:focus,
+.using-keyboard a:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  button {
+    border: 2px solid;
+  }
+  
+  .error {
+    background-color: #ffebee;
+    border: 1px solid #f44336;
+    padding: 8px;
+    border-radius: 4px;
+  }
+  
+  .msg {
+    background-color: #e8f5e8;
+    border: 1px solid #4caf50;
+    padding: 8px;
+    border-radius: 4px;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+  
+  button {
+    background: transparent;
+    color: black;
+    border: 1px solid black;
+  }
+}
+
+/* Skip Links */
+.skip-links a {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 1000;
+}
+
+.skip-links a:focus {
+  top: 6px;
+}
+
+/* Loading States */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error States */
+.error-boundary {
+  padding: 20px;
+  border: 1px solid #f44336;
+  border-radius: 4px;
+  background-color: #ffebee;
+  color: #c62828;
+  text-align: center;
+}
+
+/* Notification Styles */
+.notification-enter {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.notification-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.notification-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification-exit-active {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Progress Bar Styles */
+.progress-bar {
+  transition: width 0.5s ease-out;
+}
+
+/* Loading Card Styles */
+.loading-card {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Skeleton Styles */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Toast Notification Styles */
+.toast-enter {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toast-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+.toast-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-exit-active {
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 300ms ease-in, transform 300ms ease-in;
+}
+
+/* Mobile Toast Styles */
+@media (max-width: 768px) {
+  .toast-enter {
+    transform: translateY(-100%);
+  }
+  
+  .toast-enter-active {
+    transform: translateY(0);
+  }
+  
+  .toast-exit-active {
+    transform: translateY(-100%);
+  }
+}
+
+/* Loading Button Styles */
+.loading-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Payment Processing Animation */
+.payment-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.payment-step {
+  transition: all 0.3s ease;
+}
+
+.payment-step.active {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.payment-step.completed {
+  color: #10b981;
+}
+
+/* Responsive Loading States */
+@media (max-width: 640px) {
+  .loading-spinner {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .skeleton {
+    min-height: 16px;
+  }
+}
+
+/* Dark Mode Support for Loading States */
+@media (prefers-color-scheme: dark) {
+  .skeleton,
+  .loading-card {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 200% 100%;
+  }
+  
+  .error-boundary {
+    background-color: #7f1d1d;
+    border-color: #dc2626;
+    color: #fecaca;
+  }
+}
