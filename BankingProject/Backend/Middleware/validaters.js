@@ -7,7 +7,7 @@ export const validatePayment =
   .matches(/^\d+(\.\d{2})?$/).withMessage('Invalid amount'),  // e.g., 100.00
   
   body('currency')
-  .matches(/^(USD|EUR|GBP|ZAR)$/i)
+  .matches(/^(USD|EUR|GBP|CAD)$/i)
   .withMessage('Invalid currency'),  
 
   body('recipient')

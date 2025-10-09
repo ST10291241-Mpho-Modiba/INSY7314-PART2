@@ -2,6 +2,9 @@ import express from 'express';
 import router2 from './authRoutes.js'
 //import router3 from './userRoutes.js'
 import paymentRouter from './payment.js'
+import { getAccount, getTransactions } from '../Controller/paymentController.js'
+import auth from '../Middleware/auth.js'
+
 const router = express.Router();
 
 // Health check endpoint
@@ -12,6 +15,10 @@ router.get('/health', (req, res) => {
     status: 'healthy'
   });
 });
+
+// Account and transactions endpoints (directly under /api)
+router.get('/account', auth, getAccount);
+router.get('/transactions', auth, getTransactions);
 
 router.use('/auth',router2);
 router.use('/payments',paymentRouter);

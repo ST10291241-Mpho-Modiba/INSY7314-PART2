@@ -129,13 +129,13 @@ const Payments = () => {
         setIsLoading(true);
         
         // Fetch account data from API
-        const accountResponse = await api.get('/account');
+        const accountResponse = await api.get('/api/payments/account');
         if (accountResponse.data) {
           setAccountData(accountResponse.data);
         }
 
         // Fetch transactions from API
-        const transactionsResponse = await api.get('/transactions');
+        const transactionsResponse = await api.get('/api/payments/transactions');
         if (transactionsResponse.data) {
           setTransactions(transactionsResponse.data);
         }
@@ -208,7 +208,7 @@ const Payments = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setPaymentStep(3);
-      await api.post('/payments', data);
+      await api.post('/api/payments/process', data);
       
       // Show success toast
       showToastSuccess(

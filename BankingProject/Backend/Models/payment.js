@@ -55,7 +55,8 @@ paymentSchema.pre('save', function(next) {
 
 paymentSchema.pre('save', function(next) {
   if (!this.transactionId) {
-    this.transactionId = TXN__;
+    // Generate a unique transaction ID
+    this.transactionId = `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
   next();
 });
