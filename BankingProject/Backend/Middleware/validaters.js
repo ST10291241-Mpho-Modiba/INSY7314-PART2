@@ -14,9 +14,13 @@ export const validatePayment =
   .matches(/^[a-zA-Z0-9\s]{1,50}$/)
   .withMessage('Invalid recipient'),
   (req,res,next)=>{
-    const error = validationResult(req);
-    if(!error.isEmpty()){
-        return res.status(400).json({errors: error.array()})
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        const errorMessages = errors.array().map(error => error.msg);
+        return res.status(400).json({
+            msg: errorMessages.join(', '),
+            errors: errors.array()
+        })
     }
     next();
 }
@@ -44,9 +48,13 @@ body('password')
 .withMessage('Password must contain at least 1 lowercase, 1 uppercase, 1 digit, and 1 special character'),
 
 (req,res,next)=>{
-    const error = validationResult(req);
-    if(!error.isEmpty()){
-        return res.status(400).json({errors: error.array()})
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        const errorMessages = errors.array().map(error => error.msg);
+        return res.status(400).json({
+            msg: errorMessages.join(', '),
+            errors: errors.array()
+        })
     }
     next();
 }
@@ -63,9 +71,13 @@ body('password')
 .withMessage('Password must be at least 6 characters long'),
 
 (req,res,next)=>{
-    const error = validationResult(req);
-    if(!error.isEmpty()){
-        return res.status(400).json({errors: error.array()})
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        const errorMessages = errors.array().map(error => error.msg);
+        return res.status(400).json({
+            msg: errorMessages.join(', '),
+            errors: errors.array()
+        })
     }
     next();
 }
@@ -76,9 +88,13 @@ export const validateUserUpdate =[
     body('username').optional().isLength({min: 3}).withMessage('Username must be at least 3 characters'),
     body('email').optional().isEmail().withMessage('Invalid email address'),
     (req,res,next)=>{
-        const error = validationResult(req);
-        if(!error.isEmpty()){
-            return res.status(400).json({errors:error.array()})
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            const errorMessages = errors.array().map(error => error.msg);
+            return res.status(400).json({
+                msg: errorMessages.join(', '),
+                errors: errors.array()
+            })
         }
         next();
     }

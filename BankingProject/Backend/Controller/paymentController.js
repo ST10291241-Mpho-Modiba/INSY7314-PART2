@@ -17,19 +17,48 @@ export const ProcessPayments = async (req, res) => {
     const { amount, currency, recipient, description } = req.body;
     const userId = req.user.id;
 
+    console.log(`Processing payment request: ${amount} ${currency} to ${recipient} by user ${userId}`);
+
     const result = await processPayment(
       { amount, currency, recipient, description }, 
       userId
     );
 
+    console.log(`Payment processed successfully: ${result.payment.transactionId}`);
+
     res.status(201).json({ 
       msg: result.message,
-      payment: result.payment 
+      payment: result.payment,
+      success: true
     });
   } catch (err) {
     console.error('Payment controller error:', err);
-    res.status(400).json({ 
-      msg: err.message || 'Payment processing failed' 
+    
+    // Determine appropriate status code based on error message
+    let statusCode = 400; // Default to bad request
+    
+    if (err.message.includes('temporarily unavailable') || 
+        err.message.includes('service is temporarily unavailable')) {
+      statusCode = 503; // Service unavailable
+    } else if (err.message.includes('Validation failed')) {
+      statusCode = 400; // Bad request for validation errors
+    } else if (err.message.includes('unauthorized') || 
+               err.message.includes('authentication')) {
+      statusCode = 401; // Unauthorized
+    } else if (err.message.includes('not found')) {
+      statusCode = 404; // Not found
+    } else if (err.message.includes('network') || 
+               err.message.includes('connection')) {
+      statusCode = 503; // Service unavailable for network issues
+    }
+    
+    res.status(statusCode).json({ 
+      msg: err.message || 'Payment processing failed',
+      success: false,
+      error: {
+        type: statusCode === 503 ? 'service_unavailable' : 'payment_error',
+        code: statusCode
+      }
     });
   }
 };

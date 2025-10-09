@@ -208,19 +208,96 @@ const Payments = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setPaymentStep(3);
-      await api.post('/api/payments/process', data);
       
-      // Show success toast
-      showToastSuccess(
-        'Payment Sent Successfully!',
-        `${formatCurrency(data.amount)} has been sent to ${data.recipient}`,
+      // Make the API call and wait for response
+      const response = await api.post('/api/payments/process', data);
+      
+      // Only show success if the API call was successful
+      if (response.status === 201 && response.data) {
+        // Show success toast
+        showToastSuccess(
+          'Payment Sent Successfully!',
+          `${formatCurrency(data.amount)} has been sent to ${data.recipient}`,
+          {
+            duration: 6000,
+            actions: [
+              {
+                label: 'View Receipt',
+                handler: () => {
+                  console.log('View receipt for payment:', data);
+                },
+                variant: 'primary'
+              }
+            ]
+          }
+        );
+        
+        // Announce success to screen readers
+        announce(`Payment of ${formatCurrency(data.amount)} sent successfully to ${data.recipient}`);
+        
+        // Reset form and close modal
+        reset();
+        setTimeout(() => {
+          setShowPaymentModal(false);
+          restoreFocus();
+        }, 2000);
+        
+        // Refresh transactions to show the new payment
+        try {
+          const transactionsResponse = await api.get('/api/payments/transactions');
+          if (transactionsResponse.data) {
+            setTransactions(transactionsResponse.data);
+          }
+        } catch (refreshError) {
+          console.warn('Failed to refresh transactions:', refreshError);
+        }
+      } else {
+        throw new Error('Payment processing failed - invalid response');
+      }
+    } catch (error) {
+      console.error('Payment submission error:', error);
+      
+      // Reset payment step
+      setPaymentStep(1);
+      
+      // Determine error message based on error type
+      let errorMessage = 'Payment processing failed. Please try again.';
+      let errorTitle = 'Payment Failed';
+      
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const serverMessage = error.response.data?.msg || error.response.data?.message;
+        
+        if (status === 503) {
+          errorTitle = 'Service Temporarily Unavailable';
+          errorMessage = 'Our payment system is temporarily unavailable. Please try again later.';
+        } else if (status === 400) {
+          errorTitle = 'Invalid Payment Information';
+          errorMessage = serverMessage || 'Please check your payment details and try again.';
+        } else if (status === 401) {
+          errorTitle = 'Authentication Required';
+          errorMessage = 'Please log in again to process payments.';
+        } else if (serverMessage) {
+          errorMessage = serverMessage;
+        }
+      } else if (error.request) {
+        // Network error
+        errorTitle = 'Network Error';
+        errorMessage = 'Unable to connect to payment service. Please check your internet connection.';
+      }
+      
+      // Show error toast
+      showToastError(
+        errorTitle,
+        errorMessage,
         {
-          duration: 6000,
+          duration: 8000,
           actions: [
             {
-              label: 'View Receipt',
+              label: 'Retry',
               handler: () => {
-                console.log('View receipt for payment:', data);
+                handleSubmit(onSubmit)(data);
               },
               variant: 'primary'
             }
@@ -228,16 +305,7 @@ const Payments = () => {
         }
       );
       
-      // Announce success to screen readers
-      announce(`Payment of ${formatCurrency(data.amount)} sent successfully to ${data.recipient}`);
-      
-      // Reset form and close modal
-      reset();
-      setTimeout(() => {
-        setShowPaymentModal(false);
-        restoreFocus();
-      }, 2000);
-    } catch (error) {
+      // Also use the existing error handler for additional error reporting
       handleTransactionError(error, {
         id: Date.now().toString(),
         amount: data.amount,
