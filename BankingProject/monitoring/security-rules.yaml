@@ -1,0 +1,250 @@
+groups:
+- name: banking_security_alerts
+  rules:
+  # Authentication and Authorization Alerts
+  - alert: HighFailedLoginAttempts
+    expr: rate(failed_login_attempts_total[5m]) > 10
+    for: 2m
+    labels:
+      severity: warning
+      category: security
+      compliance: PCI-DSS
+    annotations:
+      summary: "High number of failed login attempts detected"
+      description: "{{ $value }} failed login attempts per second in the last 5 minutes"
+      remediation: "Check for potential brute force attacks and consider IP blocking"
+
+  - alert: SuspiciousLoginPattern
+    expr: rate(login_attempts_total[1h]) > 100
+    for: 5m
+    labels:
+      severity: critical
+      category: security
+      compliance: PCI-DSS
+    annotations:
+      summary: "Suspicious login pattern detected"
+      description: "Unusual login activity: {{ $value }} attempts in the last hour"
+      remediation: "Investigate potential account takeover attempts"
+
+  - alert: PrivilegeEscalation
+    expr: increase(privilege_escalation_attempts_total[10m]) > 0
+    for: 0s
+    labels:
+      severity: critical
+      category: security
+      compliance: SOX
+    annotations:
+      summary: "Privilege escalation attempt detected"
+      description: "{{ $value }} privilege escalation attempts in the last 10 minutes"
+      remediation: "Immediate investigation required - potential insider threat"
+
+  # Data Access and Transaction Alerts
+  - alert: UnauthorizedDataAccess
+    expr: rate(unauthorized_data_access_total[5m]) > 0
+    for: 0s
+    labels:
+      severity: critical
+      category: security
+      compliance: GDPR
+    annotations:
+      summary: "Unauthorized data access attempt"
+      description: "Unauthorized access to sensitive data detected"
+      remediation: "Investigate data breach potential and notify security team"
+
+  - alert: LargeTransactionVolume
+    expr: rate(transaction_amount_total[1h]) > 1000000
+    for: 5m
+    labels:
+      severity: warning
+      category: fraud
+      compliance: AML
+    annotations:
+      summary: "Unusually large transaction volume"
+      description: "Transaction volume of ${{ $value }} in the last hour"
+      remediation: "Review for potential money laundering activity"
+
+  - alert: SuspiciousTransactionPattern
+    expr: rate(suspicious_transaction_total[15m]) > 5
+    for: 2m
+    labels:
+      severity: warning
+      category: fraud
+      compliance: AML
+    annotations:
+      summary: "Suspicious transaction pattern detected"
+      description: "{{ $value }} suspicious transactions in 15 minutes"
+      remediation: "Flag for manual review and potential account freeze"
+
+  # System Security Alerts
+  - alert: SecurityScannerDown
+    expr: up{job="security-scanner"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      category: infrastructure
+    annotations:
+      summary: "Security scanner is down"
+      description: "Security monitoring system is not responding"
+      remediation: "Restore security scanner immediately - blind spot created"
+
+  - alert: VulnerabilityDetected
+    expr: vulnerability_count > 0
+    for: 0s
+    labels:
+      severity: warning
+      category: security
+    annotations:
+      summary: "Security vulnerability detected"
+      description: "{{ $value }} vulnerabilities found in system scan"
+      remediation: "Review and patch vulnerabilities according to severity"
+
+  - alert: CriticalVulnerabilityDetected
+    expr: critical_vulnerability_count > 0
+    for: 0s
+    labels:
+      severity: critical
+      category: security
+    annotations:
+      summary: "Critical security vulnerability detected"
+      description: "{{ $value }} critical vulnerabilities require immediate attention"
+      remediation: "Emergency patching required - potential system compromise"
+
+  # Network Security Alerts
+  - alert: DDoSAttack
+    expr: rate(http_requests_total[1m]) > 1000
+    for: 2m
+    labels:
+      severity: critical
+      category: security
+    annotations:
+      summary: "Potential DDoS attack detected"
+      description: "{{ $value }} requests per second - potential DDoS"
+      remediation: "Activate DDoS protection and rate limiting"
+
+  - alert: UnusualNetworkTraffic
+    expr: rate(network_bytes_total[5m]) > 100000000
+    for: 5m
+    labels:
+      severity: warning
+      category: security
+    annotations:
+      summary: "Unusual network traffic detected"
+      description: "Network traffic: {{ $value }} bytes/sec"
+      remediation: "Investigate potential data exfiltration"
+
+  # Compliance and Audit Alerts
+  - alert: AuditLogFailure
+    expr: rate(audit_log_errors_total[5m]) > 0
+    for: 1m
+    labels:
+      severity: critical
+      category: compliance
+      compliance: SOX
+    annotations:
+      summary: "Audit logging failure"
+      description: "Audit log system is failing - compliance risk"
+      remediation: "Restore audit logging immediately for compliance"
+
+  - alert: DataRetentionViolation
+    expr: data_retention_violations_total > 0
+    for: 0s
+    labels:
+      severity: warning
+      category: compliance
+      compliance: GDPR
+    annotations:
+      summary: "Data retention policy violation"
+      description: "{{ $value }} data retention violations detected"
+      remediation: "Review and clean up data according to retention policies"
+
+  - alert: EncryptionFailure
+    expr: rate(encryption_failures_total[5m]) > 0
+    for: 0s
+    labels:
+      severity: critical
+      category: security
+      compliance: PCI-DSS
+    annotations:
+      summary: "Encryption failure detected"
+      description: "Data encryption is failing - security risk"
+      remediation: "Investigate encryption system and restore immediately"
+
+  # Application Security Alerts
+  - alert: SQLInjectionAttempt
+    expr: rate(sql_injection_attempts_total[5m]) > 0
+    for: 0s
+    labels:
+      severity: critical
+      category: security
+    annotations:
+      summary: "SQL injection attempt detected"
+      description: "{{ $value }} SQL injection attempts in 5 minutes"
+      remediation: "Block source IP and review application security"
+
+  - alert: XSSAttempt
+    expr: rate(xss_attempts_total[5m]) > 0
+    for: 0s
+    labels:
+      severity: warning
+      category: security
+    annotations:
+      summary: "Cross-site scripting attempt detected"
+      description: "{{ $value }} XSS attempts in 5 minutes"
+      remediation: "Review input validation and sanitization"
+
+  - alert: CSRFAttempt
+    expr: rate(csrf_attempts_total[5m]) > 0
+    for: 0s
+    labels:
+      severity: warning
+      category: security
+    annotations:
+      summary: "CSRF attack attempt detected"
+      description: "{{ $value }} CSRF attempts in 5 minutes"
+      remediation: "Verify CSRF protection is properly implemented"
+
+  # Infrastructure Security Alerts
+  - alert: ContainerSecurityViolation
+    expr: container_security_violations_total > 0
+    for: 0s
+    labels:
+      severity: warning
+      category: security
+    annotations:
+      summary: "Container security violation"
+      description: "{{ $value }} container security violations detected"
+      remediation: "Review container configurations and security policies"
+
+  - alert: SecretsExposed
+    expr: exposed_secrets_total > 0
+    for: 0s
+    labels:
+      severity: critical
+      category: security
+    annotations:
+      summary: "Secrets exposure detected"
+      description: "{{ $value }} secrets potentially exposed"
+      remediation: "Rotate exposed secrets immediately and investigate source"
+
+  # Performance Security Alerts
+  - alert: MemoryExhaustion
+    expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.95
+    for: 5m
+    labels:
+      severity: critical
+      category: security
+    annotations:
+      summary: "Memory exhaustion - potential DoS"
+      description: "Memory usage at {{ $value | humanizePercentage }}"
+      remediation: "Investigate potential memory-based attacks"
+
+  - alert: DiskSpaceExhaustion
+    expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.05
+    for: 5m
+    labels:
+      severity: critical
+      category: security
+    annotations:
+      summary: "Disk space exhaustion - potential DoS"
+      description: "Disk space usage at {{ $value | humanizePercentage }}"
+      remediation: "Clean up disk space and investigate potential disk-filling attacks"

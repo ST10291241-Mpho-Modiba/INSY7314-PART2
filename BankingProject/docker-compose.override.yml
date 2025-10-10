@@ -1,0 +1,49 @@
+# Development overrides for Docker Compose
+version: '3.8'
+
+services:
+  # Development backend with hot reload
+  backend:
+    build:
+      target: builder
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      DEBUG: banking:*
+    volumes:
+      - ./Backend:/app
+      - /app/node_modules
+    ports:
+      - "5000:5000"
+      - "9229:9229"  # Node.js debugger port
+
+  # Development frontend with hot reload
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    command: npm start
+    environment:
+      REACT_APP_API_URL: http://localhost:5000/api
+      REACT_APP_ENV: development
+      CHOKIDAR_USEPOLLING: true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+
+  # Development database with exposed ports
+  mongodb:
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+
+  # Development Redis
+  redis:
+    ports:
+      - "6379:6379"

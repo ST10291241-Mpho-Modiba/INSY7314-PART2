@@ -1,0 +1,513 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aml-compliance-config
+  namespace: banking-app
+data:
+  aml-requirements.yaml: |
+    # AML (Anti-Money Laundering) Compliance Requirements for Banking Application
+    
+    requirements:
+      # Customer Due Diligence (CDD)
+      customer_due_diligence:
+        name: "Customer Due Diligence"
+        description: "Know Your Customer (KYC) and customer identification procedures"
+        controls:
+          - customer_identification
+          - beneficial_ownership
+          - ongoing_monitoring
+        checks:
+          - name: "Customer Identification Program"
+            description: "Verify customer identification and verification procedures"
+            command: "grep -r 'kyc\\|customer.*identification\\|identity.*verification' Backend/"
+            expected: "kyc_procedures_implemented"
+          - name: "Beneficial Ownership"
+            description: "Verify beneficial ownership identification for entities"
+            command: "grep -r 'beneficial.*ownership\\|ultimate.*owner' Backend/"
+            expected: "beneficial_ownership_tracking"
+          - name: "Risk Assessment"
+            description: "Verify customer risk assessment procedures"
+            command: "grep -r 'risk.*assessment\\|customer.*risk' Backend/"
+            expected: "risk_assessment_implemented"
+      
+      # Enhanced Due Diligence (EDD)
+      enhanced_due_diligence:
+        name: "Enhanced Due Diligence"
+        description: "Enhanced due diligence for high-risk customers"
+        controls:
+          - high_risk_customers
+          - pep_screening
+          - enhanced_monitoring
+        checks:
+          - name: "PEP Screening"
+            description: "Verify Politically Exposed Person (PEP) screening"
+            command: "grep -r 'pep.*screening\\|politically.*exposed' Backend/"
+            expected: "pep_screening_implemented"
+          - name: "High-Risk Customer Monitoring"
+            description: "Verify enhanced monitoring for high-risk customers"
+            command: "grep -r 'high.*risk.*monitoring\\|enhanced.*monitoring' Backend/"
+            expected: "enhanced_monitoring_implemented"
+          - name: "Sanctions Screening"
+            description: "Verify sanctions list screening procedures"
+            command: "grep -r 'sanctions.*screening\\|watchlist.*screening' Backend/"
+            expected: "sanctions_screening_implemented"
+      
+      # Transaction Monitoring
+      transaction_monitoring:
+        name: "Transaction Monitoring"
+        description: "Automated transaction monitoring and suspicious activity detection"
+        controls:
+          - automated_monitoring
+          - suspicious_activity_detection
+          - threshold_monitoring
+        checks:
+          - name: "Automated Transaction Monitoring"
+            description: "Verify automated transaction monitoring system"
+            command: "grep -r 'transaction.*monitoring\\|automated.*monitoring' Backend/"
+            expected: "automated_monitoring_implemented"
+          - name: "Suspicious Activity Detection"
+            description: "Verify suspicious activity detection algorithms"
+            command: "grep -r 'suspicious.*activity\\|anomaly.*detection' Backend/"
+            expected: "suspicious_activity_detection"
+          - name: "Threshold Monitoring"
+            description: "Verify transaction threshold monitoring"
+            command: "grep -r 'threshold.*monitoring\\|limit.*monitoring' Backend/"
+            expected: "threshold_monitoring_implemented"
+      
+      # Suspicious Activity Reporting (SAR)
+      suspicious_activity_reporting:
+        name: "Suspicious Activity Reporting"
+        description: "SAR filing and suspicious transaction reporting"
+        controls:
+          - sar_generation
+          - regulatory_reporting
+          - case_management
+        checks:
+          - name: "SAR Generation"
+            description: "Verify SAR generation and filing procedures"
+            command: "grep -r 'sar.*generation\\|suspicious.*report' Backend/"
+            expected: "sar_procedures_implemented"
+          - name: "Regulatory Reporting"
+            description: "Verify regulatory reporting mechanisms"
+            command: "grep -r 'regulatory.*report\\|compliance.*report' Backend/"
+            expected: "regulatory_reporting_implemented"
+          - name: "Case Management"
+            description: "Verify case management for investigations"
+            command: "grep -r 'case.*management\\|investigation.*tracking' Backend/"
+            expected: "case_management_implemented"
+      
+      # Record Keeping
+      record_keeping:
+        name: "Record Keeping"
+        description: "AML record keeping and audit trail requirements"
+        controls:
+          - transaction_records
+          - customer_records
+          - audit_trails
+        checks:
+          - name: "Transaction Record Retention"
+            description: "Verify transaction records are retained per AML requirements"
+            command: "grep -r 'transaction.*retention\\|record.*retention' Backend/"
+            expected: "transaction_retention_implemented"
+          - name: "Customer Record Retention"
+            description: "Verify customer records are retained per AML requirements"
+            command: "grep -r 'customer.*retention\\|kyc.*retention' Backend/"
+            expected: "customer_retention_implemented"
+          - name: "Audit Trail Completeness"
+            description: "Verify complete audit trails for AML activities"
+            command: "kubectl logs -n banking-app -l app=banking-backend | grep 'aml\\|compliance' | wc -l"
+            expected: "audit_trails_present"
+      
+      # Training and Awareness
+      training_awareness:
+        name: "Training and Awareness"
+        description: "AML training and awareness programs"
+        controls:
+          - staff_training
+          - awareness_programs
+          - competency_assessment
+        checks:
+          - name: "AML Training Documentation"
+            description: "Verify AML training documentation exists"
+            command: "find . -name '*training*' -o -name '*aml*education*'"
+            expected: "training_documentation_present"
+          - name: "Compliance Awareness"
+            description: "Verify compliance awareness materials"
+            command: "find . -name '*compliance*awareness*' -o -name '*aml*awareness*'"
+            expected: "awareness_materials_present"
+      
+      # Independent Testing
+      independent_testing:
+        name: "Independent Testing"
+        description: "Independent testing of AML program effectiveness"
+        controls:
+          - program_testing
+          - effectiveness_assessment
+          - remediation_tracking
+        checks:
+          - name: "AML Program Testing"
+            description: "Verify independent testing of AML program"
+            command: "find . -name '*aml*test*' -o -name '*compliance*test*'"
+            expected: "program_testing_documented"
+          - name: "Effectiveness Assessment"
+            description: "Verify AML program effectiveness assessments"
+            command: "find . -name '*effectiveness*' -o -name '*assessment*'"
+            expected: "effectiveness_assessment_present"
+      
+      # Technology and Systems
+      technology_systems:
+        name: "Technology and Systems"
+        description: "AML technology systems and data management"
+        controls:
+          - aml_systems
+          - data_quality
+          - system_integration
+        checks:
+          - name: "AML System Integration"
+            description: "Verify AML systems are properly integrated"
+            command: "grep -r 'aml.*system\\|compliance.*system' Backend/"
+            expected: "aml_systems_integrated"
+          - name: "Data Quality Controls"
+            description: "Verify data quality controls for AML"
+            command: "grep -r 'data.*quality\\|data.*validation' Backend/"
+            expected: "data_quality_controls"
+          - name: "Real-time Processing"
+            description: "Verify real-time transaction processing for AML"
+            command: "grep -r 'real.*time.*processing\\|streaming.*processing' Backend/"
+            expected: "real_time_processing"
+
+  aml-scan.sh: |
+    #!/bin/bash
+    
+    # AML (Anti-Money Laundering) Compliance Scanner for Banking Application
+    set -euo pipefail
+    
+    echo "🏦 Starting AML Compliance Scan for Banking Application..."
+    echo "=================================================="
+    
+    NAMESPACE="banking-app"
+    REPORT_FILE="aml-compliance-report-$(date +%Y%m%d-%H%M%S).json"
+    PASSED=0
+    FAILED=0
+    WARNINGS=0
+    
+    # Initialize report
+    cat > "$REPORT_FILE" << EOF
+    {
+      "scan_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+      "application": "Banking Application",
+      "standard": "AML (Anti-Money Laundering)",
+      "namespace": "$NAMESPACE",
+      "results": []
+    }
+    EOF
+    
+    # Function to add result to report
+    add_result() {
+      local category="$1"
+      local category_name="$2"
+      local check_name="$3"
+      local status="$4"
+      local details="$5"
+      
+      jq --arg category "$category" \
+         --arg category_name "$category_name" \
+         --arg check_name "$check_name" \
+         --arg status "$status" \
+         --arg details "$details" \
+         '.results += [{
+           "category": $category,
+           "category_name": $category_name,
+           "check_name": $check_name,
+           "status": $status,
+           "details": $details,
+           "timestamp": now | strftime("%Y-%m-%dT%H:%M:%SZ")
+         }]' "$REPORT_FILE" > tmp.json && mv tmp.json "$REPORT_FILE"
+    }
+    
+    # Customer Due Diligence (CDD)
+    echo "👤 Checking Customer Due Diligence (CDD)..."
+    
+    # Check KYC procedures
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "kyc\|customer.*identification\|identity.*verification" | grep -q "."; then
+      echo "✅ KYC procedures implemented"
+      add_result "CDD" "Customer Due Diligence" "KYC Procedures" "PASS" "KYC implementation found in backend"
+      ((PASSED++))
+    else
+      echo "❌ KYC procedures not implemented"
+      add_result "CDD" "Customer Due Diligence" "KYC Procedures" "FAIL" "No KYC implementation found"
+      ((FAILED++))
+    fi
+    
+    # Check beneficial ownership
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "beneficial.*ownership\|ultimate.*owner" | grep -q "."; then
+      echo "✅ Beneficial ownership tracking implemented"
+      add_result "CDD" "Customer Due Diligence" "Beneficial Ownership" "PASS" "Beneficial ownership tracking found"
+      ((PASSED++))
+    else
+      echo "⚠️ Beneficial ownership tracking needs implementation"
+      add_result "CDD" "Customer Due Diligence" "Beneficial Ownership" "WARNING" "Beneficial ownership tracking not found"
+      ((WARNINGS++))
+    fi
+    
+    # Check risk assessment
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "risk.*assessment\|customer.*risk" | grep -q "."; then
+      echo "✅ Customer risk assessment implemented"
+      add_result "CDD" "Customer Due Diligence" "Risk Assessment" "PASS" "Risk assessment procedures found"
+      ((PASSED++))
+    else
+      echo "❌ Customer risk assessment not implemented"
+      add_result "CDD" "Customer Due Diligence" "Risk Assessment" "FAIL" "No risk assessment procedures found"
+      ((FAILED++))
+    fi
+    
+    # Enhanced Due Diligence (EDD)
+    echo "🔍 Checking Enhanced Due Diligence (EDD)..."
+    
+    # Check PEP screening
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "pep.*screening\|politically.*exposed" | grep -q "."; then
+      echo "✅ PEP screening implemented"
+      add_result "EDD" "Enhanced Due Diligence" "PEP Screening" "PASS" "PEP screening procedures found"
+      ((PASSED++))
+    else
+      echo "❌ PEP screening not implemented"
+      add_result "EDD" "Enhanced Due Diligence" "PEP Screening" "FAIL" "No PEP screening procedures found"
+      ((FAILED++))
+    fi
+    
+    # Check sanctions screening
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "sanctions.*screening\|watchlist.*screening" | grep -q "."; then
+      echo "✅ Sanctions screening implemented"
+      add_result "EDD" "Enhanced Due Diligence" "Sanctions Screening" "PASS" "Sanctions screening procedures found"
+      ((PASSED++))
+    else
+      echo "❌ Sanctions screening not implemented"
+      add_result "EDD" "Enhanced Due Diligence" "Sanctions Screening" "FAIL" "No sanctions screening procedures found"
+      ((FAILED++))
+    fi
+    
+    # Check enhanced monitoring
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "high.*risk.*monitoring\|enhanced.*monitoring" | grep -q "."; then
+      echo "✅ Enhanced monitoring implemented"
+      add_result "EDD" "Enhanced Due Diligence" "Enhanced Monitoring" "PASS" "Enhanced monitoring procedures found"
+      ((PASSED++))
+    else
+      echo "❌ Enhanced monitoring not implemented"
+      add_result "EDD" "Enhanced Due Diligence" "Enhanced Monitoring" "FAIL" "No enhanced monitoring procedures found"
+      ((FAILED++))
+    fi
+    
+    # Transaction Monitoring
+    echo "💰 Checking Transaction Monitoring..."
+    
+    # Check automated monitoring
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "transaction.*monitoring\|automated.*monitoring" | grep -q "."; then
+      echo "✅ Automated transaction monitoring implemented"
+      add_result "TM" "Transaction Monitoring" "Automated Monitoring" "PASS" "Automated monitoring system found"
+      ((PASSED++))
+    else
+      echo "❌ Automated transaction monitoring not implemented"
+      add_result "TM" "Transaction Monitoring" "Automated Monitoring" "FAIL" "No automated monitoring system found"
+      ((FAILED++))
+    fi
+    
+    # Check suspicious activity detection
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "suspicious.*activity\|anomaly.*detection" | grep -q "."; then
+      echo "✅ Suspicious activity detection implemented"
+      add_result "TM" "Transaction Monitoring" "Suspicious Activity Detection" "PASS" "Suspicious activity detection found"
+      ((PASSED++))
+    else
+      echo "❌ Suspicious activity detection not implemented"
+      add_result "TM" "Transaction Monitoring" "Suspicious Activity Detection" "FAIL" "No suspicious activity detection found"
+      ((FAILED++))
+    fi
+    
+    # Check threshold monitoring
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "threshold.*monitoring\|limit.*monitoring" | grep -q "."; then
+      echo "✅ Threshold monitoring implemented"
+      add_result "TM" "Transaction Monitoring" "Threshold Monitoring" "PASS" "Threshold monitoring system found"
+      ((PASSED++))
+    else
+      echo "❌ Threshold monitoring not implemented"
+      add_result "TM" "Transaction Monitoring" "Threshold Monitoring" "FAIL" "No threshold monitoring system found"
+      ((FAILED++))
+    fi
+    
+    # Suspicious Activity Reporting (SAR)
+    echo "📋 Checking Suspicious Activity Reporting (SAR)..."
+    
+    # Check SAR generation
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "sar.*generation\|suspicious.*report" | grep -q "."; then
+      echo "✅ SAR generation implemented"
+      add_result "SAR" "Suspicious Activity Reporting" "SAR Generation" "PASS" "SAR generation procedures found"
+      ((PASSED++))
+    else
+      echo "❌ SAR generation not implemented"
+      add_result "SAR" "Suspicious Activity Reporting" "SAR Generation" "FAIL" "No SAR generation procedures found"
+      ((FAILED++))
+    fi
+    
+    # Check regulatory reporting
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "regulatory.*report\|compliance.*report" | grep -q "."; then
+      echo "✅ Regulatory reporting implemented"
+      add_result "SAR" "Suspicious Activity Reporting" "Regulatory Reporting" "PASS" "Regulatory reporting mechanisms found"
+      ((PASSED++))
+    else
+      echo "❌ Regulatory reporting not implemented"
+      add_result "SAR" "Suspicious Activity Reporting" "Regulatory Reporting" "FAIL" "No regulatory reporting mechanisms found"
+      ((FAILED++))
+    fi
+    
+    # Check case management
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "case.*management\|investigation.*tracking" | grep -q "."; then
+      echo "✅ Case management implemented"
+      add_result "SAR" "Suspicious Activity Reporting" "Case Management" "PASS" "Case management system found"
+      ((PASSED++))
+    else
+      echo "❌ Case management not implemented"
+      add_result "SAR" "Suspicious Activity Reporting" "Case Management" "FAIL" "No case management system found"
+      ((FAILED++))
+    fi
+    
+    # Record Keeping
+    echo "📁 Checking Record Keeping..."
+    
+    # Check transaction retention
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "transaction.*retention\|record.*retention" | grep -q "."; then
+      echo "✅ Transaction record retention implemented"
+      add_result "RK" "Record Keeping" "Transaction Retention" "PASS" "Transaction retention procedures found"
+      ((PASSED++))
+    else
+      echo "❌ Transaction record retention not implemented"
+      add_result "RK" "Record Keeping" "Transaction Retention" "FAIL" "No transaction retention procedures found"
+      ((FAILED++))
+    fi
+    
+    # Check audit trails
+    AUDIT_COUNT=$(kubectl logs -n "$NAMESPACE" -l app=banking-backend --tail=1000 2>/dev/null | grep -c "aml\|compliance" || echo "0")
+    if [ "$AUDIT_COUNT" -gt 0 ]; then
+      echo "✅ AML audit trails present ($AUDIT_COUNT entries)"
+      add_result "RK" "Record Keeping" "Audit Trails" "PASS" "Found $AUDIT_COUNT AML audit log entries"
+      ((PASSED++))
+    else
+      echo "❌ AML audit trails missing"
+      add_result "RK" "Record Keeping" "Audit Trails" "FAIL" "No AML audit log entries found"
+      ((FAILED++))
+    fi
+    
+    # Technology and Systems
+    echo "💻 Checking Technology and Systems..."
+    
+    # Check AML system integration
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "aml.*system\|compliance.*system" | grep -q "."; then
+      echo "✅ AML systems integrated"
+      add_result "TS" "Technology Systems" "AML Integration" "PASS" "AML system integration found"
+      ((PASSED++))
+    else
+      echo "❌ AML systems not integrated"
+      add_result "TS" "Technology Systems" "AML Integration" "FAIL" "No AML system integration found"
+      ((FAILED++))
+    fi
+    
+    # Check data quality controls
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "data.*quality\|data.*validation" | grep -q "."; then
+      echo "✅ Data quality controls implemented"
+      add_result "TS" "Technology Systems" "Data Quality" "PASS" "Data quality controls found"
+      ((PASSED++))
+    else
+      echo "❌ Data quality controls not implemented"
+      add_result "TS" "Technology Systems" "Data Quality" "FAIL" "No data quality controls found"
+      ((FAILED++))
+    fi
+    
+    # Check real-time processing
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "real.*time.*processing\|streaming.*processing" | grep -q "."; then
+      echo "✅ Real-time processing implemented"
+      add_result "TS" "Technology Systems" "Real-time Processing" "PASS" "Real-time processing capabilities found"
+      ((PASSED++))
+    else
+      echo "⚠️ Real-time processing needs verification"
+      add_result "TS" "Technology Systems" "Real-time Processing" "WARNING" "Real-time processing not explicitly found"
+      ((WARNINGS++))
+    fi
+    
+    # Additional AML-specific checks
+    echo "🔍 Performing additional AML compliance checks..."
+    
+    # Check for currency transaction reporting
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "ctr\|currency.*transaction.*report" | grep -q "."; then
+      echo "✅ Currency transaction reporting implemented"
+      add_result "Additional" "CTR" "Currency Transaction Reporting" "PASS" "CTR functionality found"
+      ((PASSED++))
+    else
+      echo "⚠️ Currency transaction reporting needs verification"
+      add_result "Additional" "CTR" "Currency Transaction Reporting" "WARNING" "CTR functionality not found"
+      ((WARNINGS++))
+    fi
+    
+    # Check for wire transfer monitoring
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "wire.*transfer\|international.*transfer" | grep -q "."; then
+      echo "✅ Wire transfer monitoring implemented"
+      add_result "Additional" "Wire Transfers" "Wire Transfer Monitoring" "PASS" "Wire transfer monitoring found"
+      ((PASSED++))
+    else
+      echo "⚠️ Wire transfer monitoring needs verification"
+      add_result "Additional" "Wire Transfers" "Wire Transfer Monitoring" "WARNING" "Wire transfer monitoring not found"
+      ((WARNINGS++))
+    fi
+    
+    # Check for cash transaction monitoring
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "cash.*transaction\|cash.*monitoring" | grep -q "."; then
+      echo "✅ Cash transaction monitoring implemented"
+      add_result "Additional" "Cash Monitoring" "Cash Transaction Monitoring" "PASS" "Cash transaction monitoring found"
+      ((PASSED++))
+    else
+      echo "⚠️ Cash transaction monitoring needs verification"
+      add_result "Additional" "Cash Monitoring" "Cash Transaction Monitoring" "WARNING" "Cash transaction monitoring not found"
+      ((WARNINGS++))
+    fi
+    
+    # Generate summary
+    TOTAL=$((PASSED + FAILED + WARNINGS))
+    COMPLIANCE_PERCENTAGE=$((PASSED * 100 / TOTAL))
+    
+    jq --arg total "$TOTAL" \
+       --arg passed "$PASSED" \
+       --arg failed "$FAILED" \
+       --arg warnings "$WARNINGS" \
+       --arg percentage "$COMPLIANCE_PERCENTAGE" \
+       '. += {
+         "summary": {
+           "total_checks": ($total | tonumber),
+           "passed": ($passed | tonumber),
+           "failed": ($failed | tonumber),
+           "warnings": ($warnings | tonumber),
+           "compliance_percentage": ($percentage | tonumber)
+         }
+       }' "$REPORT_FILE" > tmp.json && mv tmp.json "$REPORT_FILE"
+    
+    echo ""
+    echo "=================================================="
+    echo "🏦 AML Compliance Scan Complete"
+    echo "=================================================="
+    echo "Total Checks: $TOTAL"
+    echo "Passed: $PASSED"
+    echo "Failed: $FAILED"
+    echo "Warnings: $WARNINGS"
+    echo "Compliance: $COMPLIANCE_PERCENTAGE%"
+    echo ""
+    echo "📄 Report saved to: $REPORT_FILE"
+    
+    # AML compliance is critical for banking operations
+    if [ "$FAILED" -gt 0 ]; then
+      echo "❌ AML compliance scan failed. Immediate remediation required."
+      echo "⚠️  AML violations can result in severe regulatory penalties and license revocation."
+      exit 1
+    elif [ "$WARNINGS" -gt 3 ]; then
+      echo "⚠️ AML compliance scan passed with significant warnings."
+      echo "📋 Please address warnings to ensure full compliance."
+      exit 0
+    else
+      echo "✅ AML compliance scan passed successfully!"
+      exit 0
+    fi

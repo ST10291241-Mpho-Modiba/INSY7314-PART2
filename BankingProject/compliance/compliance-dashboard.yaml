@@ -1,0 +1,635 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: compliance-dashboard-config
+  namespace: banking-app
+data:
+  grafana-compliance-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Banking Application - Compliance Dashboard",
+        "tags": ["compliance", "banking", "security"],
+        "style": "dark",
+        "timezone": "browser",
+        "refresh": "30s",
+        "time": {
+          "from": "now-24h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Compliance Overview",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "compliance_scan_passed_total",
+                "legendFormat": "Passed"
+              },
+              {
+                "expr": "compliance_scan_failed_total",
+                "legendFormat": "Failed"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 70},
+                    {"color": "green", "value": 90}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "PCI-DSS Compliance Status",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "pci_dss_compliance_percentage",
+                "legendFormat": "PCI-DSS Compliance %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 80},
+                    {"color": "green", "value": 95}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "SOX Compliance Status",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "sox_compliance_percentage",
+                "legendFormat": "SOX Compliance %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 80},
+                    {"color": "green", "value": 95}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+          },
+          {
+            "id": 4,
+            "title": "GDPR Compliance Status",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "gdpr_compliance_percentage",
+                "legendFormat": "GDPR Compliance %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 80},
+                    {"color": "green", "value": 95}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 8}
+          },
+          {
+            "id": 5,
+            "title": "AML Compliance Status",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "aml_compliance_percentage",
+                "legendFormat": "AML Compliance %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 80},
+                    {"color": "green", "value": 95}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 6, "y": 8}
+          },
+          {
+            "id": 6,
+            "title": "Security Alerts",
+            "type": "table",
+            "targets": [
+              {
+                "expr": "ALERTS{alertname=~\".*Security.*|.*Breach.*|.*Unauthorized.*\"}",
+                "format": "table"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          },
+          {
+            "id": 7,
+            "title": "Failed Login Attempts",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(failed_login_attempts_total[5m])",
+                "legendFormat": "Failed Logins/min"
+              }
+            ],
+            "yAxes": [
+              {"label": "Attempts per minute", "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+          },
+          {
+            "id": 8,
+            "title": "Suspicious Transactions",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(suspicious_transactions_total[5m])",
+                "legendFormat": "Suspicious Transactions/min"
+              }
+            ],
+            "yAxes": [
+              {"label": "Transactions per minute", "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+          },
+          {
+            "id": 9,
+            "title": "Data Access Violations",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(unauthorized_data_access_total[5m])",
+                "legendFormat": "Unauthorized Access/min"
+              }
+            ],
+            "yAxes": [
+              {"label": "Violations per minute", "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+          },
+          {
+            "id": 10,
+            "title": "Compliance Scan History",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "compliance_scan_duration_seconds",
+                "legendFormat": "Scan Duration (s)"
+              }
+            ],
+            "yAxes": [
+              {"label": "Duration (seconds)", "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+          }
+        ]
+      }
+    }
+
+  compliance-metrics.yaml: |
+    # Prometheus metrics for compliance monitoring
+    
+    groups:
+      - name: compliance.rules
+        rules:
+          # PCI-DSS Compliance Metrics
+          - record: pci_dss_compliance_percentage
+            expr: |
+              (
+                sum(compliance_check{standard="pci-dss", status="pass"}) /
+                sum(compliance_check{standard="pci-dss"})
+              ) * 100
+          
+          - record: pci_dss_failed_checks
+            expr: sum(compliance_check{standard="pci-dss", status="fail"})
+          
+          # SOX Compliance Metrics
+          - record: sox_compliance_percentage
+            expr: |
+              (
+                sum(compliance_check{standard="sox", status="pass"}) /
+                sum(compliance_check{standard="sox"})
+              ) * 100
+          
+          - record: sox_failed_checks
+            expr: sum(compliance_check{standard="sox", status="fail"})
+          
+          # GDPR Compliance Metrics
+          - record: gdpr_compliance_percentage
+            expr: |
+              (
+                sum(compliance_check{standard="gdpr", status="pass"}) /
+                sum(compliance_check{standard="gdpr"})
+              ) * 100
+          
+          - record: gdpr_failed_checks
+            expr: sum(compliance_check{standard="gdpr", status="fail"})
+          
+          # AML Compliance Metrics
+          - record: aml_compliance_percentage
+            expr: |
+              (
+                sum(compliance_check{standard="aml", status="pass"}) /
+                sum(compliance_check{standard="aml"})
+              ) * 100
+          
+          - record: aml_failed_checks
+            expr: sum(compliance_check{standard="aml", status="fail"})
+          
+          # Overall Compliance Score
+          - record: overall_compliance_score
+            expr: |
+              (
+                pci_dss_compliance_percentage +
+                sox_compliance_percentage +
+                gdpr_compliance_percentage +
+                aml_compliance_percentage
+              ) / 4
+          
+          # Security Metrics
+          - record: failed_login_rate
+            expr: rate(failed_login_attempts_total[5m])
+          
+          - record: suspicious_transaction_rate
+            expr: rate(suspicious_transactions_total[5m])
+          
+          - record: data_breach_incidents
+            expr: increase(data_breach_total[24h])
+          
+          # Audit Metrics
+          - record: audit_log_completeness
+            expr: |
+              (
+                sum(audit_logs_generated_total) /
+                sum(transactions_total)
+              ) * 100
+          
+          - record: compliance_scan_success_rate
+            expr: |
+              (
+                sum(compliance_scan_total{status="success"}) /
+                sum(compliance_scan_total)
+              ) * 100
+
+  compliance-alerts.yaml: |
+    # Compliance-specific alerting rules
+    
+    groups:
+      - name: compliance.alerts
+        rules:
+          # Critical Compliance Failures
+          - alert: ComplianceFailureCritical
+            expr: overall_compliance_score < 80
+            for: 5m
+            labels:
+              severity: critical
+              category: compliance
+              compliance_standard: "multiple"
+            annotations:
+              summary: "Critical compliance failure detected"
+              description: "Overall compliance score is {{ $value }}%, below critical threshold of 80%"
+              remediation: "Immediate review and remediation of failed compliance checks required"
+          
+          # PCI-DSS Specific Alerts
+          - alert: PCIDSSComplianceFailure
+            expr: pci_dss_compliance_percentage < 95
+            for: 10m
+            labels:
+              severity: warning
+              category: compliance
+              compliance_standard: "pci-dss"
+            annotations:
+              summary: "PCI-DSS compliance below threshold"
+              description: "PCI-DSS compliance is {{ $value }}%, below required 95%"
+              remediation: "Review PCI-DSS compliance scan results and address failed checks"
+          
+          # SOX Specific Alerts
+          - alert: SOXComplianceFailure
+            expr: sox_compliance_percentage < 95
+            for: 10m
+            labels:
+              severity: warning
+              category: compliance
+              compliance_standard: "sox"
+            annotations:
+              summary: "SOX compliance below threshold"
+              description: "SOX compliance is {{ $value }}%, below required 95%"
+              remediation: "Review SOX compliance scan results and address failed checks"
+          
+          # GDPR Specific Alerts
+          - alert: GDPRComplianceFailure
+            expr: gdpr_compliance_percentage < 95
+            for: 10m
+            labels:
+              severity: warning
+              category: compliance
+              compliance_standard: "gdpr"
+            annotations:
+              summary: "GDPR compliance below threshold"
+              description: "GDPR compliance is {{ $value }}%, below required 95%"
+              remediation: "Review GDPR compliance scan results and address failed checks"
+          
+          # AML Specific Alerts
+          - alert: AMLComplianceFailure
+            expr: aml_compliance_percentage < 95
+            for: 10m
+            labels:
+              severity: warning
+              category: compliance
+              compliance_standard: "aml"
+            annotations:
+              summary: "AML compliance below threshold"
+              description: "AML compliance is {{ $value }}%, below required 95%"
+              remediation: "Review AML compliance scan results and address failed checks"
+          
+          # Security Compliance Alerts
+          - alert: ExcessiveFailedLogins
+            expr: failed_login_rate > 10
+            for: 5m
+            labels:
+              severity: warning
+              category: security
+              compliance_impact: "authentication"
+            annotations:
+              summary: "Excessive failed login attempts detected"
+              description: "Failed login rate is {{ $value }} attempts/minute"
+              remediation: "Investigate potential brute force attack and review authentication logs"
+          
+          - alert: SuspiciousTransactionSpike
+            expr: suspicious_transaction_rate > 5
+            for: 5m
+            labels:
+              severity: critical
+              category: aml
+              compliance_impact: "transaction_monitoring"
+            annotations:
+              summary: "Spike in suspicious transactions detected"
+              description: "Suspicious transaction rate is {{ $value }} transactions/minute"
+              remediation: "Immediate investigation required for potential money laundering activity"
+          
+          - alert: DataBreachDetected
+            expr: data_breach_incidents > 0
+            for: 0m
+            labels:
+              severity: critical
+              category: security
+              compliance_impact: "data_protection"
+            annotations:
+              summary: "Data breach incident detected"
+              description: "{{ $value }} data breach incident(s) detected in the last 24 hours"
+              remediation: "Immediate incident response required - notify compliance team and regulators"
+          
+          # Audit and Monitoring Alerts
+          - alert: AuditLogIncomplete
+            expr: audit_log_completeness < 99
+            for: 15m
+            labels:
+              severity: warning
+              category: audit
+              compliance_impact: "record_keeping"
+            annotations:
+              summary: "Audit log completeness below threshold"
+              description: "Audit log completeness is {{ $value }}%, below required 99%"
+              remediation: "Investigate audit logging system and ensure all transactions are logged"
+          
+          - alert: ComplianceScanFailure
+            expr: compliance_scan_success_rate < 95
+            for: 30m
+            labels:
+              severity: warning
+              category: compliance
+              compliance_impact: "monitoring"
+            annotations:
+              summary: "Compliance scan success rate below threshold"
+              description: "Compliance scan success rate is {{ $value }}%, below required 95%"
+              remediation: "Review compliance scanning infrastructure and address scan failures"
+
+  compliance-exporter.py: |
+    #!/usr/bin/env python3
+    """
+    Compliance Metrics Exporter for Prometheus
+    Exports compliance scan results as Prometheus metrics
+    """
+    
+    import json
+    import time
+    import os
+    import glob
+    from prometheus_client import start_http_server, Gauge, Counter, Histogram
+    import logging
+    
+    # Configure logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    
+    # Prometheus metrics
+    compliance_check = Gauge('compliance_check', 'Compliance check status', ['standard', 'category', 'check', 'status'])
+    compliance_percentage = Gauge('compliance_percentage', 'Compliance percentage by standard', ['standard'])
+    compliance_scan_duration = Histogram('compliance_scan_duration_seconds', 'Compliance scan duration', ['standard'])
+    compliance_scan_total = Counter('compliance_scan_total', 'Total compliance scans', ['standard', 'status'])
+    
+    # Security metrics
+    failed_login_attempts = Counter('failed_login_attempts_total', 'Total failed login attempts')
+    suspicious_transactions = Counter('suspicious_transactions_total', 'Total suspicious transactions')
+    unauthorized_data_access = Counter('unauthorized_data_access_total', 'Total unauthorized data access attempts')
+    data_breach_total = Counter('data_breach_total', 'Total data breach incidents')
+    
+    # Audit metrics
+    audit_logs_generated = Counter('audit_logs_generated_total', 'Total audit logs generated')
+    transactions_total = Counter('transactions_total', 'Total transactions processed')
+    
+    def parse_compliance_report(file_path):
+        """Parse compliance report JSON file and extract metrics"""
+        try:
+            with open(file_path, 'r') as f:
+                report = json.load(f)
+            
+            standard = report.get('standard', 'unknown').lower()
+            if 'pci' in standard:
+                standard = 'pci-dss'
+            elif 'sox' in standard:
+                standard = 'sox'
+            elif 'gdpr' in standard:
+                standard = 'gdpr'
+            elif 'aml' in standard:
+                standard = 'aml'
+            
+            # Update compliance percentage
+            summary = report.get('summary', {})
+            percentage = summary.get('compliance_percentage', 0)
+            compliance_percentage.labels(standard=standard).set(percentage)
+            
+            # Update individual check metrics
+            for result in report.get('results', []):
+                category = result.get('category', result.get('section', result.get('article', 'unknown')))
+                check_name = result.get('check_name', 'unknown')
+                status = result.get('status', 'unknown').lower()
+                
+                # Set metric value based on status
+                value = 1 if status == 'pass' else 0
+                compliance_check.labels(
+                    standard=standard,
+                    category=category,
+                    check=check_name,
+                    status=status
+                ).set(value)
+            
+            # Update scan metrics
+            compliance_scan_total.labels(standard=standard, status='success').inc()
+            
+            logger.info(f"Processed compliance report for {standard}: {percentage}% compliance")
+            
+        except Exception as e:
+            logger.error(f"Error parsing compliance report {file_path}: {e}")
+            compliance_scan_total.labels(standard='unknown', status='error').inc()
+    
+    def monitor_compliance_reports():
+        """Monitor compliance report directory for new reports"""
+        report_patterns = [
+            '/tmp/compliance-reports/*-compliance-report-*.json',
+            './compliance/*-compliance-report-*.json',
+            './*-compliance-report-*.json'
+        ]
+        
+        processed_files = set()
+        
+        while True:
+            try:
+                for pattern in report_patterns:
+                    for file_path in glob.glob(pattern):
+                        if file_path not in processed_files:
+                            parse_compliance_report(file_path)
+                            processed_files.add(file_path)
+                
+                # Simulate some security metrics (in real implementation, these would come from actual systems)
+                # This is just for demonstration
+                if len(processed_files) > 0:
+                    # Simulate metrics based on time to show dashboard activity
+                    current_minute = int(time.time() / 60)
+                    if current_minute % 10 == 0:  # Every 10 minutes
+                        failed_login_attempts.inc(2)
+                    if current_minute % 30 == 0:  # Every 30 minutes
+                        suspicious_transactions.inc(1)
+                    if current_minute % 60 == 0:  # Every hour
+                        audit_logs_generated.inc(100)
+                        transactions_total.inc(150)
+                
+                time.sleep(30)  # Check every 30 seconds
+                
+            except Exception as e:
+                logger.error(f"Error monitoring compliance reports: {e}")
+                time.sleep(60)  # Wait longer on error
+    
+    if __name__ == '__main__':
+        # Start Prometheus metrics server
+        start_http_server(8000)
+        logger.info("Compliance metrics exporter started on port 8000")
+        
+        # Start monitoring compliance reports
+        monitor_compliance_reports()
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compliance-exporter
+  namespace: banking-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compliance-exporter
+  template:
+    metadata:
+      labels:
+        app: compliance-exporter
+    spec:
+      containers:
+      - name: compliance-exporter
+        image: python:3.9-slim
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          pip install prometheus_client
+          python /app/compliance-exporter.py
+        ports:
+        - containerPort: 8000
+          name: metrics
+        volumeMounts:
+        - name: compliance-config
+          mountPath: /app
+        - name: compliance-reports
+          mountPath: /tmp/compliance-reports
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: compliance-config
+        configMap:
+          name: compliance-dashboard-config
+          items:
+          - key: compliance-exporter.py
+            path: compliance-exporter.py
+            mode: 0755
+      - name: compliance-reports
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: compliance-exporter-service
+  namespace: banking-app
+  labels:
+    app: compliance-exporter
+spec:
+  selector:
+    app: compliance-exporter
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: metrics
+  type: ClusterIP

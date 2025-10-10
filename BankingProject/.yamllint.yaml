@@ -1,0 +1,77 @@
+extends: default
+
+rules:
+  # Banking applications require longer lines for configuration
+  line-length:
+    max: 120
+    level: warning
+
+  # Allow multiple documents in YAML files (common in Kubernetes)
+  document-start:
+    present: false
+
+  # Allow empty values in YAML (common in environment variables)
+  empty-values:
+    forbid-in-block-mappings: false
+    forbid-in-flow-mappings: false
+
+  # Indentation rules for consistency
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+
+  # Comments formatting
+  comments:
+    min-spaces-from-content: 1
+    require-starting-space: true
+
+  # Truthy values (for Kubernetes boolean fields)
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    check-keys: true
+
+  # Brackets and braces
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
+  # Colons
+  colons:
+    max-spaces-before: 0
+    max-spaces-after: 1
+
+  # Commas
+  commas:
+    max-spaces-before: 0
+    max-spaces-after: 1
+
+  # Hyphens
+  hyphens:
+    max-spaces-after: 1
+
+  # Key ordering (disabled for flexibility)
+  key-ordering: disable
+
+  # Octal values (important for file permissions)
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: false
+
+  # Quoted strings
+  quoted-strings:
+    quote-type: any
+    required: false
+
+ignore: |
+  node_modules/
+  .git/
+  dist/
+  build/
+  coverage/
+  *.min.js
+  *.min.css

@@ -1,0 +1,43 @@
+# ZAP Scanning Rules for Banking Application
+# Format: IGNORE/WARN/FAIL	RULE_ID	URL_REGEX	PARAMETER	CWE	WASCID	DESCRIPTION
+
+# Ignore false positives for static assets
+IGNORE	10021	.*\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$		79	15	X-Content-Type-Options Header Missing
+
+# Banking-specific security rules
+FAIL	40012	.*		79	15	Cross Site Scripting (Reflected)
+FAIL	40014	.*		79	15	Cross Site Scripting (Persistent)
+FAIL	40016	.*		79	15	Cross Site Scripting (Persistent) - Prime
+FAIL	40017	.*		79	15	Cross Site Scripting (Persistent) - Spider
+FAIL	40018	.*		79	15	Cross Site Scripting (Persistent) - OTG-INPVAL-002
+FAIL	90019	.*		200	13	Server Leaks Information via "X-Powered-By" HTTP Response Header Field(s)
+FAIL	90020	.*		200	13	Server Leaks Version Information via "Server" HTTP Response Header Field
+FAIL	10035	.*		16	4	Strict-Transport-Security Header Not Set
+FAIL	10036	.*		16	4	Server Leaks Version Information via "Server" HTTP Response Header Field
+FAIL	10037	.*		16	4	Server Leaks Information via "X-Powered-By" HTTP Response Header Field(s)
+FAIL	10038	.*		16	4	Content Security Policy (CSP) Header Not Set
+FAIL	10039	.*		16	4	X-Content-Type-Options Header Missing
+FAIL	10040	.*		16	4	X-Frame-Options Header Not Set
+FAIL	10041	.*		16	4	X-XSS-Protection Header Not Set
+
+# Authentication and session management
+FAIL	10054	.*		287	1	Cookie Without Secure Flag
+FAIL	10055	.*		614	13	Cookie Without HttpOnly Flag
+FAIL	10056	.*		16	13	X-Frame-Options Header Not Set
+FAIL	10057	.*		16	13	Username Hash Found
+FAIL	10058	.*		16	13	GET for POST
+FAIL	10059	.*		16	13	X-Content-Type-Options Header Missing
+FAIL	10060	.*		16	13	X-Frame-Options Header Not Set
+
+# SQL Injection checks
+FAIL	40018	.*		89	19	SQL Injection
+FAIL	40019	.*		89	19	SQL Injection - MySQL
+FAIL	40020	.*		89	19	SQL Injection - Hypersonic SQL
+FAIL	40021	.*		89	19	SQL Injection - Oracle
+FAIL	40022	.*		89	19	SQL Injection - PostgreSQL
+FAIL	40023	.*		89	19	SQL Injection - SQLite
+
+# Banking-specific endpoints to focus on
+WARN	0	.*/api/auth/.*		0	0	Authentication endpoints require extra scrutiny
+WARN	0	.*/api/payments/.*		0	0	Payment endpoints require extra scrutiny
+WARN	0	.*/api/users/.*		0	0	User management endpoints require extra scrutiny

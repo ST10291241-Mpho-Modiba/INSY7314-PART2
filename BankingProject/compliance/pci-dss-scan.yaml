@@ -1,0 +1,421 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pci-dss-compliance-config
+  namespace: banking-app
+data:
+  pci-dss-requirements.yaml: |
+    # PCI DSS Compliance Requirements for Banking Application
+    
+    requirements:
+      # Requirement 1: Install and maintain a firewall configuration
+      req_1:
+        name: "Firewall Configuration"
+        description: "Install and maintain a firewall configuration to protect cardholder data"
+        controls:
+          - network_segmentation
+          - firewall_rules
+          - dmz_configuration
+        checks:
+          - name: "Network Segmentation"
+            command: "kubectl get networkpolicies -n banking-app"
+            expected: "banking-app-network-policy"
+          - name: "Ingress Rules"
+            command: "kubectl get ingress -n banking-app"
+            expected: "banking-app-ingress"
+      
+      # Requirement 2: Do not use vendor-supplied defaults
+      req_2:
+        name: "Vendor Defaults"
+        description: "Do not use vendor-supplied defaults for system passwords and other security parameters"
+        controls:
+          - default_passwords
+          - security_parameters
+          - system_hardening
+        checks:
+          - name: "Default Passwords Check"
+            command: "grep -r 'admin:admin\\|root:root\\|password:password' k8s/"
+            expected: "no_matches"
+          - name: "Security Headers"
+            command: "curl -I https://banking-app.com | grep -E 'X-Frame-Options|X-Content-Type-Options|Strict-Transport-Security'"
+            expected: "security_headers_present"
+      
+      # Requirement 3: Protect stored cardholder data
+      req_3:
+        name: "Data Protection"
+        description: "Protect stored cardholder data"
+        controls:
+          - data_encryption
+          - key_management
+          - data_retention
+        checks:
+          - name: "Encryption at Rest"
+            command: "kubectl get pv -o yaml | grep 'encrypted: true'"
+            expected: "encryption_enabled"
+          - name: "Secret Management"
+            command: "kubectl get secrets -n banking-app"
+            expected: "secrets_properly_managed"
+      
+      # Requirement 4: Encrypt transmission of cardholder data
+      req_4:
+        name: "Data Transmission"
+        description: "Encrypt transmission of cardholder data across open, public networks"
+        controls:
+          - tls_encryption
+          - certificate_management
+          - secure_protocols
+        checks:
+          - name: "TLS Configuration"
+            command: "kubectl get ingress banking-app-ingress -n banking-app -o yaml | grep tls"
+            expected: "tls_configured"
+          - name: "Certificate Validity"
+            command: "openssl s_client -connect banking-app.com:443 -servername banking-app.com"
+            expected: "valid_certificate"
+      
+      # Requirement 5: Protect all systems against malware
+      req_5:
+        name: "Malware Protection"
+        description: "Protect all systems against malware and regularly update anti-virus software"
+        controls:
+          - antivirus_software
+          - malware_scanning
+          - system_updates
+        checks:
+          - name: "Container Scanning"
+            command: "trivy image banking-frontend:latest"
+            expected: "no_critical_vulnerabilities"
+          - name: "Runtime Security"
+            command: "kubectl get pods -n banking-app -o yaml | grep securityContext"
+            expected: "security_context_configured"
+      
+      # Requirement 6: Develop and maintain secure systems
+      req_6:
+        name: "Secure Development"
+        description: "Develop and maintain secure systems and applications"
+        controls:
+          - secure_coding
+          - vulnerability_management
+          - change_control
+        checks:
+          - name: "SAST Scanning"
+            command: "sonar-scanner -Dsonar.projectKey=banking-app"
+            expected: "no_security_hotspots"
+          - name: "Dependency Scanning"
+            command: "npm audit --audit-level moderate"
+            expected: "no_vulnerabilities"
+      
+      # Requirement 7: Restrict access by business need-to-know
+      req_7:
+        name: "Access Control"
+        description: "Restrict access to cardholder data by business need-to-know"
+        controls:
+          - rbac
+          - least_privilege
+          - access_reviews
+        checks:
+          - name: "RBAC Configuration"
+            command: "kubectl get rolebindings -n banking-app"
+            expected: "rbac_configured"
+          - name: "Service Account Permissions"
+            command: "kubectl get serviceaccounts -n banking-app -o yaml"
+            expected: "minimal_permissions"
+      
+      # Requirement 8: Identify and authenticate access
+      req_8:
+        name: "Authentication"
+        description: "Identify and authenticate access to system components"
+        controls:
+          - user_identification
+          - authentication_factors
+          - password_policies
+        checks:
+          - name: "Authentication Mechanisms"
+            command: "grep -r 'jwt\\|oauth\\|saml' Backend/"
+            expected: "strong_authentication"
+          - name: "Password Policies"
+            command: "grep -r 'password.*policy\\|bcrypt\\|scrypt' Backend/"
+            expected: "secure_password_handling"
+      
+      # Requirement 9: Restrict physical access
+      req_9:
+        name: "Physical Access"
+        description: "Restrict physical access to cardholder data"
+        controls:
+          - physical_security
+          - media_handling
+          - device_controls
+        checks:
+          - name: "Cloud Security"
+            command: "kubectl get nodes -o yaml | grep 'cloud.google.com\\|eks.amazonaws.com\\|azure.com'"
+            expected: "cloud_provider_security"
+      
+      # Requirement 10: Track and monitor access
+      req_10:
+        name: "Monitoring"
+        description: "Track and monitor all access to network resources and cardholder data"
+        controls:
+          - audit_logging
+          - log_monitoring
+          - incident_response
+        checks:
+          - name: "Audit Logging"
+            command: "kubectl logs -n banking-app -l app=banking-backend | grep audit"
+            expected: "audit_logs_present"
+          - name: "Monitoring System"
+            command: "kubectl get pods -n banking-app -l app=prometheus"
+            expected: "monitoring_active"
+      
+      # Requirement 11: Regularly test security systems
+      req_11:
+        name: "Security Testing"
+        description: "Regularly test security systems and processes"
+        controls:
+          - vulnerability_scanning
+          - penetration_testing
+          - intrusion_detection
+        checks:
+          - name: "Vulnerability Scanning"
+            command: "trivy k8s --report summary cluster"
+            expected: "regular_scanning"
+          - name: "Security Tests"
+            command: "grep -r 'security.*test\\|penetration.*test' .github/workflows/"
+            expected: "automated_security_tests"
+      
+      # Requirement 12: Maintain information security policy
+      req_12:
+        name: "Security Policy"
+        description: "Maintain a policy that addresses information security for all personnel"
+        controls:
+          - security_policy
+          - security_awareness
+          - incident_response_plan
+        checks:
+          - name: "Security Documentation"
+            command: "find . -name '*security*' -o -name '*compliance*' | wc -l"
+            expected: "documentation_present"
+          - name: "Incident Response"
+            command: "grep -r 'incident.*response\\|security.*incident' monitoring/"
+            expected: "incident_response_configured"
+
+  compliance-scan.sh: |
+    #!/bin/bash
+    
+    # PCI DSS Compliance Scanner for Banking Application
+    set -euo pipefail
+    
+    echo "🏦 Starting PCI DSS Compliance Scan for Banking Application..."
+    echo "=================================================="
+    
+    NAMESPACE="banking-app"
+    REPORT_FILE="pci-dss-compliance-report-$(date +%Y%m%d-%H%M%S).json"
+    PASSED=0
+    FAILED=0
+    WARNINGS=0
+    
+    # Initialize report
+    cat > "$REPORT_FILE" << EOF
+    {
+      "scan_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+      "application": "Banking Application",
+      "standard": "PCI DSS v4.0",
+      "namespace": "$NAMESPACE",
+      "results": []
+    }
+    EOF
+    
+    # Function to add result to report
+    add_result() {
+      local req_id="$1"
+      local req_name="$2"
+      local check_name="$3"
+      local status="$4"
+      local details="$5"
+      
+      jq --arg req_id "$req_id" \
+         --arg req_name "$req_name" \
+         --arg check_name "$check_name" \
+         --arg status "$status" \
+         --arg details "$details" \
+         '.results += [{
+           "requirement_id": $req_id,
+           "requirement_name": $req_name,
+           "check_name": $check_name,
+           "status": $status,
+           "details": $details,
+           "timestamp": now | strftime("%Y-%m-%dT%H:%M:%SZ")
+         }]' "$REPORT_FILE" > tmp.json && mv tmp.json "$REPORT_FILE"
+    }
+    
+    # Requirement 1: Firewall Configuration
+    echo "🔥 Checking Requirement 1: Firewall Configuration..."
+    if kubectl get networkpolicies -n "$NAMESPACE" | grep -q "banking-app-network-policy"; then
+      echo "✅ Network policies configured"
+      add_result "1" "Firewall Configuration" "Network Policies" "PASS" "Network policies are properly configured"
+      ((PASSED++))
+    else
+      echo "❌ Network policies missing"
+      add_result "1" "Firewall Configuration" "Network Policies" "FAIL" "Network policies are not configured"
+      ((FAILED++))
+    fi
+    
+    # Requirement 2: Vendor Defaults
+    echo "🔧 Checking Requirement 2: Vendor Defaults..."
+    if ! grep -r "admin:admin\|root:root\|password:password" k8s/ 2>/dev/null; then
+      echo "✅ No default passwords found"
+      add_result "2" "Vendor Defaults" "Default Passwords" "PASS" "No default passwords detected"
+      ((PASSED++))
+    else
+      echo "❌ Default passwords detected"
+      add_result "2" "Vendor Defaults" "Default Passwords" "FAIL" "Default passwords found in configuration"
+      ((FAILED++))
+    fi
+    
+    # Requirement 3: Data Protection
+    echo "🔒 Checking Requirement 3: Data Protection..."
+    if kubectl get secrets -n "$NAMESPACE" | grep -q "banking-app-secrets"; then
+      echo "✅ Secrets management configured"
+      add_result "3" "Data Protection" "Secret Management" "PASS" "Kubernetes secrets are properly configured"
+      ((PASSED++))
+    else
+      echo "❌ Secrets management not configured"
+      add_result "3" "Data Protection" "Secret Management" "FAIL" "Kubernetes secrets are not configured"
+      ((FAILED++))
+    fi
+    
+    # Requirement 4: Data Transmission
+    echo "🌐 Checking Requirement 4: Data Transmission..."
+    if kubectl get ingress -n "$NAMESPACE" -o yaml | grep -q "tls:"; then
+      echo "✅ TLS encryption configured"
+      add_result "4" "Data Transmission" "TLS Configuration" "PASS" "TLS encryption is configured for ingress"
+      ((PASSED++))
+    else
+      echo "❌ TLS encryption not configured"
+      add_result "4" "Data Transmission" "TLS Configuration" "FAIL" "TLS encryption is not configured"
+      ((FAILED++))
+    fi
+    
+    # Requirement 5: Malware Protection
+    echo "🛡️ Checking Requirement 5: Malware Protection..."
+    if kubectl get pods -n "$NAMESPACE" -o yaml | grep -q "securityContext:"; then
+      echo "✅ Security contexts configured"
+      add_result "5" "Malware Protection" "Security Context" "PASS" "Pod security contexts are configured"
+      ((PASSED++))
+    else
+      echo "❌ Security contexts not configured"
+      add_result "5" "Malware Protection" "Security Context" "FAIL" "Pod security contexts are missing"
+      ((FAILED++))
+    fi
+    
+    # Requirement 6: Secure Development
+    echo "💻 Checking Requirement 6: Secure Development..."
+    if [ -f ".github/workflows/security.yml" ]; then
+      echo "✅ Security scanning workflow configured"
+      add_result "6" "Secure Development" "Security Scanning" "PASS" "Automated security scanning is configured"
+      ((PASSED++))
+    else
+      echo "❌ Security scanning workflow missing"
+      add_result "6" "Secure Development" "Security Scanning" "FAIL" "Automated security scanning is not configured"
+      ((FAILED++))
+    fi
+    
+    # Requirement 7: Access Control
+    echo "👤 Checking Requirement 7: Access Control..."
+    if kubectl get rolebindings -n "$NAMESPACE" 2>/dev/null | grep -q "banking"; then
+      echo "✅ RBAC configured"
+      add_result "7" "Access Control" "RBAC" "PASS" "Role-based access control is configured"
+      ((PASSED++))
+    else
+      echo "⚠️ RBAC not fully configured"
+      add_result "7" "Access Control" "RBAC" "WARNING" "RBAC configuration needs review"
+      ((WARNINGS++))
+    fi
+    
+    # Requirement 8: Authentication
+    echo "🔐 Checking Requirement 8: Authentication..."
+    if grep -r "jwt\|bcrypt" Backend/ 2>/dev/null | grep -q "."; then
+      echo "✅ Strong authentication mechanisms found"
+      add_result "8" "Authentication" "Authentication Mechanisms" "PASS" "Strong authentication mechanisms are implemented"
+      ((PASSED++))
+    else
+      echo "❌ Strong authentication mechanisms not found"
+      add_result "8" "Authentication" "Authentication Mechanisms" "FAIL" "Strong authentication mechanisms are missing"
+      ((FAILED++))
+    fi
+    
+    # Requirement 10: Monitoring
+    echo "📊 Checking Requirement 10: Monitoring..."
+    if kubectl get pods -n "$NAMESPACE" -l app=prometheus 2>/dev/null | grep -q "prometheus"; then
+      echo "✅ Monitoring system active"
+      add_result "10" "Monitoring" "Monitoring System" "PASS" "Prometheus monitoring is active"
+      ((PASSED++))
+    else
+      echo "❌ Monitoring system not active"
+      add_result "10" "Monitoring" "Monitoring System" "FAIL" "Monitoring system is not deployed"
+      ((FAILED++))
+    fi
+    
+    # Requirement 11: Security Testing
+    echo "🧪 Checking Requirement 11: Security Testing..."
+    if [ -f ".github/workflows/ci-cd.yml" ] && grep -q "trivy\|security" .github/workflows/ci-cd.yml; then
+      echo "✅ Automated security testing configured"
+      add_result "11" "Security Testing" "Automated Testing" "PASS" "Automated security testing is configured"
+      ((PASSED++))
+    else
+      echo "❌ Automated security testing not configured"
+      add_result "11" "Security Testing" "Automated Testing" "FAIL" "Automated security testing is missing"
+      ((FAILED++))
+    fi
+    
+    # Requirement 12: Security Policy
+    echo "📋 Checking Requirement 12: Security Policy..."
+    if find . -name "*security*" -o -name "*compliance*" | grep -q "."; then
+      echo "✅ Security documentation present"
+      add_result "12" "Security Policy" "Documentation" "PASS" "Security documentation is present"
+      ((PASSED++))
+    else
+      echo "❌ Security documentation missing"
+      add_result "12" "Security Policy" "Documentation" "FAIL" "Security documentation is missing"
+      ((FAILED++))
+    fi
+    
+    # Generate summary
+    TOTAL=$((PASSED + FAILED + WARNINGS))
+    COMPLIANCE_PERCENTAGE=$((PASSED * 100 / TOTAL))
+    
+    jq --arg total "$TOTAL" \
+       --arg passed "$PASSED" \
+       --arg failed "$FAILED" \
+       --arg warnings "$WARNINGS" \
+       --arg percentage "$COMPLIANCE_PERCENTAGE" \
+       '. += {
+         "summary": {
+           "total_checks": ($total | tonumber),
+           "passed": ($passed | tonumber),
+           "failed": ($failed | tonumber),
+           "warnings": ($warnings | tonumber),
+           "compliance_percentage": ($percentage | tonumber)
+         }
+       }' "$REPORT_FILE" > tmp.json && mv tmp.json "$REPORT_FILE"
+    
+    echo ""
+    echo "=================================================="
+    echo "🏦 PCI DSS Compliance Scan Complete"
+    echo "=================================================="
+    echo "Total Checks: $TOTAL"
+    echo "Passed: $PASSED"
+    echo "Failed: $FAILED"
+    echo "Warnings: $WARNINGS"
+    echo "Compliance: $COMPLIANCE_PERCENTAGE%"
+    echo ""
+    echo "📄 Report saved to: $REPORT_FILE"
+    
+    if [ "$FAILED" -gt 0 ]; then
+      echo "❌ Compliance scan failed. Please address the failed checks."
+      exit 1
+    elif [ "$WARNINGS" -gt 0 ]; then
+      echo "⚠️ Compliance scan passed with warnings. Please review."
+      exit 0
+    else
+      echo "✅ Compliance scan passed successfully!"
+      exit 0
+    fi

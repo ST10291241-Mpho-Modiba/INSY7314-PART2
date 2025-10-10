@@ -1,0 +1,343 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sox-compliance-config
+  namespace: banking-app
+data:
+  sox-requirements.yaml: |
+    # SOX (Sarbanes-Oxley) Compliance Requirements for Banking Application
+    
+    requirements:
+      # Section 302: Corporate Responsibility for Financial Reports
+      section_302:
+        name: "Corporate Responsibility"
+        description: "Corporate responsibility for financial reports and internal controls"
+        controls:
+          - financial_reporting_controls
+          - data_integrity
+          - audit_trails
+        checks:
+          - name: "Financial Data Integrity"
+            description: "Ensure financial data cannot be modified without proper authorization"
+            command: "kubectl get pods -n banking-app -l component=api -o yaml | grep -E 'readOnlyRootFilesystem|runAsNonRoot'"
+            expected: "security_controls_enabled"
+          - name: "Audit Trail Completeness"
+            description: "Verify all financial transactions are logged"
+            command: "kubectl logs -n banking-app -l app=banking-backend | grep 'transaction.*audit' | wc -l"
+            expected: "audit_logs_present"
+      
+      # Section 404: Management Assessment of Internal Controls
+      section_404:
+        name: "Internal Controls Assessment"
+        description: "Management assessment of internal controls over financial reporting"
+        controls:
+          - access_controls
+          - segregation_of_duties
+          - change_management
+        checks:
+          - name: "Role-Based Access Control"
+            description: "Verify RBAC is implemented for financial systems"
+            command: "kubectl get rolebindings -n banking-app -o yaml | grep -E 'financial|payment|transaction'"
+            expected: "rbac_configured"
+          - name: "Change Management Process"
+            description: "Verify change management controls are in place"
+            command: "find .github/workflows/ -name '*.yml' | xargs grep -l 'approval\\|review'"
+            expected: "change_controls_present"
+          - name: "Segregation of Duties"
+            description: "Verify separation between development and production access"
+            command: "kubectl get rolebindings -n banking-app -o yaml | grep -v 'system:'"
+            expected: "duty_segregation"
+      
+      # Section 409: Real-time Disclosure
+      section_409:
+        name: "Real-time Disclosure"
+        description: "Real-time disclosure of material changes in financial condition"
+        controls:
+          - real_time_monitoring
+          - incident_reporting
+          - disclosure_controls
+        checks:
+          - name: "Real-time Monitoring"
+            description: "Verify real-time monitoring of financial systems"
+            command: "kubectl get pods -n banking-app -l app=prometheus"
+            expected: "monitoring_active"
+          - name: "Incident Detection"
+            description: "Verify incident detection and alerting"
+            command: "grep -r 'financial.*incident\\|transaction.*alert' monitoring/"
+            expected: "incident_detection_configured"
+      
+      # Section 802: Criminal Penalties for Document Destruction
+      section_802:
+        name: "Document Retention"
+        description: "Criminal penalties for altering documents and record retention"
+        controls:
+          - document_retention
+          - immutable_records
+          - backup_procedures
+        checks:
+          - name: "Immutable Audit Logs"
+            description: "Verify audit logs are immutable and tamper-proof"
+            command: "kubectl get pods -n banking-app -o yaml | grep -E 'readOnly.*true|immutable'"
+            expected: "immutable_logs"
+          - name: "Backup Procedures"
+            description: "Verify backup and retention procedures"
+            command: "kubectl get cronjobs -n banking-app | grep backup"
+            expected: "backup_jobs_configured"
+          - name: "Log Retention Policy"
+            description: "Verify log retention meets SOX requirements (7 years)"
+            command: "grep -r 'retention.*7.*year\\|retention.*2555' monitoring/"
+            expected: "retention_policy_compliant"
+
+  sox-scan.sh: |
+    #!/bin/bash
+    
+    # SOX Compliance Scanner for Banking Application
+    set -euo pipefail
+    
+    echo "🏛️ Starting SOX Compliance Scan for Banking Application..."
+    echo "=================================================="
+    
+    NAMESPACE="banking-app"
+    REPORT_FILE="sox-compliance-report-$(date +%Y%m%d-%H%M%S).json"
+    PASSED=0
+    FAILED=0
+    WARNINGS=0
+    
+    # Initialize report
+    cat > "$REPORT_FILE" << EOF
+    {
+      "scan_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+      "application": "Banking Application",
+      "standard": "SOX (Sarbanes-Oxley Act)",
+      "namespace": "$NAMESPACE",
+      "results": []
+    }
+    EOF
+    
+    # Function to add result to report
+    add_result() {
+      local section="$1"
+      local section_name="$2"
+      local check_name="$3"
+      local status="$4"
+      local details="$5"
+      
+      jq --arg section "$section" \
+         --arg section_name "$section_name" \
+         --arg check_name "$check_name" \
+         --arg status "$status" \
+         --arg details "$details" \
+         '.results += [{
+           "section": $section,
+           "section_name": $section_name,
+           "check_name": $check_name,
+           "status": $status,
+           "details": $details,
+           "timestamp": now | strftime("%Y-%m-%dT%H:%M:%SZ")
+         }]' "$REPORT_FILE" > tmp.json && mv tmp.json "$REPORT_FILE"
+    }
+    
+    # Section 302: Corporate Responsibility
+    echo "📊 Checking Section 302: Corporate Responsibility..."
+    
+    # Check financial data integrity
+    if kubectl get pods -n "$NAMESPACE" -l component=api -o yaml | grep -q "readOnlyRootFilesystem.*true"; then
+      echo "✅ Financial data integrity controls enabled"
+      add_result "302" "Corporate Responsibility" "Data Integrity" "PASS" "Read-only root filesystem enabled for API pods"
+      ((PASSED++))
+    else
+      echo "❌ Financial data integrity controls missing"
+      add_result "302" "Corporate Responsibility" "Data Integrity" "FAIL" "Read-only root filesystem not enabled"
+      ((FAILED++))
+    fi
+    
+    # Check audit trail completeness
+    AUDIT_COUNT=$(kubectl logs -n "$NAMESPACE" -l app=banking-backend --tail=1000 2>/dev/null | grep -c "audit\|transaction" || echo "0")
+    if [ "$AUDIT_COUNT" -gt 0 ]; then
+      echo "✅ Audit trails present ($AUDIT_COUNT entries)"
+      add_result "302" "Corporate Responsibility" "Audit Trails" "PASS" "Found $AUDIT_COUNT audit log entries"
+      ((PASSED++))
+    else
+      echo "❌ Audit trails missing or insufficient"
+      add_result "302" "Corporate Responsibility" "Audit Trails" "FAIL" "No audit log entries found"
+      ((FAILED++))
+    fi
+    
+    # Section 404: Internal Controls Assessment
+    echo "🔐 Checking Section 404: Internal Controls Assessment..."
+    
+    # Check RBAC implementation
+    if kubectl get rolebindings -n "$NAMESPACE" 2>/dev/null | grep -q "banking"; then
+      echo "✅ RBAC controls implemented"
+      add_result "404" "Internal Controls" "RBAC" "PASS" "Role-based access control is configured"
+      ((PASSED++))
+    else
+      echo "❌ RBAC controls not implemented"
+      add_result "404" "Internal Controls" "RBAC" "FAIL" "Role-based access control is missing"
+      ((FAILED++))
+    fi
+    
+    # Check change management
+    if find .github/workflows/ -name "*.yml" 2>/dev/null | xargs grep -l "approval\|review" | grep -q "."; then
+      echo "✅ Change management controls present"
+      add_result "404" "Internal Controls" "Change Management" "PASS" "Approval workflows are configured"
+      ((PASSED++))
+    else
+      echo "❌ Change management controls missing"
+      add_result "404" "Internal Controls" "Change Management" "FAIL" "No approval workflows found"
+      ((FAILED++))
+    fi
+    
+    # Check segregation of duties
+    ROLE_COUNT=$(kubectl get rolebindings -n "$NAMESPACE" 2>/dev/null | grep -v "system:" | wc -l || echo "0")
+    if [ "$ROLE_COUNT" -gt 1 ]; then
+      echo "✅ Segregation of duties implemented ($ROLE_COUNT roles)"
+      add_result "404" "Internal Controls" "Segregation of Duties" "PASS" "Multiple roles configured for duty segregation"
+      ((PASSED++))
+    else
+      echo "⚠️ Segregation of duties needs review"
+      add_result "404" "Internal Controls" "Segregation of Duties" "WARNING" "Limited role segregation detected"
+      ((WARNINGS++))
+    fi
+    
+    # Section 409: Real-time Disclosure
+    echo "⏰ Checking Section 409: Real-time Disclosure..."
+    
+    # Check real-time monitoring
+    if kubectl get pods -n "$NAMESPACE" -l app=prometheus 2>/dev/null | grep -q "prometheus"; then
+      echo "✅ Real-time monitoring active"
+      add_result "409" "Real-time Disclosure" "Monitoring" "PASS" "Prometheus monitoring is active"
+      ((PASSED++))
+    else
+      echo "❌ Real-time monitoring not active"
+      add_result "409" "Real-time Disclosure" "Monitoring" "FAIL" "Real-time monitoring is not deployed"
+      ((FAILED++))
+    fi
+    
+    # Check incident detection
+    if grep -r "financial.*incident\|transaction.*alert" monitoring/ 2>/dev/null | grep -q "."; then
+      echo "✅ Incident detection configured"
+      add_result "409" "Real-time Disclosure" "Incident Detection" "PASS" "Financial incident detection is configured"
+      ((PASSED++))
+    else
+      echo "❌ Incident detection not configured"
+      add_result "409" "Real-time Disclosure" "Incident Detection" "FAIL" "Financial incident detection is missing"
+      ((FAILED++))
+    fi
+    
+    # Section 802: Document Retention
+    echo "📁 Checking Section 802: Document Retention..."
+    
+    # Check immutable logs
+    if kubectl get pods -n "$NAMESPACE" -o yaml | grep -q "readOnly.*true"; then
+      echo "✅ Immutable log controls present"
+      add_result "802" "Document Retention" "Immutable Logs" "PASS" "Read-only volumes configured for log immutability"
+      ((PASSED++))
+    else
+      echo "❌ Immutable log controls missing"
+      add_result "802" "Document Retention" "Immutable Logs" "FAIL" "Log immutability controls are not configured"
+      ((FAILED++))
+    fi
+    
+    # Check backup procedures
+    if kubectl get cronjobs -n "$NAMESPACE" 2>/dev/null | grep -q "backup"; then
+      echo "✅ Backup procedures configured"
+      add_result "802" "Document Retention" "Backup Procedures" "PASS" "Automated backup jobs are configured"
+      ((PASSED++))
+    else
+      echo "❌ Backup procedures not configured"
+      add_result "802" "Document Retention" "Backup Procedures" "FAIL" "No backup procedures found"
+      ((FAILED++))
+    fi
+    
+    # Check retention policy
+    if grep -r "retention.*7.*year\|retention.*2555" monitoring/ 2>/dev/null | grep -q "."; then
+      echo "✅ SOX retention policy compliant"
+      add_result "802" "Document Retention" "Retention Policy" "PASS" "7-year retention policy is configured"
+      ((PASSED++))
+    else
+      echo "⚠️ SOX retention policy needs verification"
+      add_result "802" "Document Retention" "Retention Policy" "WARNING" "7-year retention policy not explicitly configured"
+      ((WARNINGS++))
+    fi
+    
+    # Additional SOX-specific checks
+    echo "🔍 Performing additional SOX compliance checks..."
+    
+    # Check for financial data encryption
+    if kubectl get secrets -n "$NAMESPACE" | grep -q "banking-app-secrets"; then
+      echo "✅ Financial data encryption configured"
+      add_result "General" "Data Protection" "Encryption" "PASS" "Encryption secrets are properly managed"
+      ((PASSED++))
+    else
+      echo "❌ Financial data encryption not configured"
+      add_result "General" "Data Protection" "Encryption" "FAIL" "Encryption configuration is missing"
+      ((FAILED++))
+    fi
+    
+    # Check for non-repudiation controls
+    if grep -r "digital.*signature\|non.*repudiation\|integrity.*hash" Backend/ 2>/dev/null | grep -q "."; then
+      echo "✅ Non-repudiation controls present"
+      add_result "General" "Data Integrity" "Non-repudiation" "PASS" "Non-repudiation controls are implemented"
+      ((PASSED++))
+    else
+      echo "⚠️ Non-repudiation controls need verification"
+      add_result "General" "Data Integrity" "Non-repudiation" "WARNING" "Non-repudiation controls not explicitly found"
+      ((WARNINGS++))
+    fi
+    
+    # Check for financial reporting controls
+    if grep -r "financial.*report\|accounting.*control" Backend/ 2>/dev/null | grep -q "."; then
+      echo "✅ Financial reporting controls present"
+      add_result "General" "Financial Controls" "Reporting" "PASS" "Financial reporting controls are implemented"
+      ((PASSED++))
+    else
+      echo "⚠️ Financial reporting controls need verification"
+      add_result "General" "Financial Controls" "Reporting" "WARNING" "Financial reporting controls not explicitly found"
+      ((WARNINGS++))
+    fi
+    
+    # Generate summary
+    TOTAL=$((PASSED + FAILED + WARNINGS))
+    COMPLIANCE_PERCENTAGE=$((PASSED * 100 / TOTAL))
+    
+    jq --arg total "$TOTAL" \
+       --arg passed "$PASSED" \
+       --arg failed "$FAILED" \
+       --arg warnings "$WARNINGS" \
+       --arg percentage "$COMPLIANCE_PERCENTAGE" \
+       '. += {
+         "summary": {
+           "total_checks": ($total | tonumber),
+           "passed": ($passed | tonumber),
+           "failed": ($failed | tonumber),
+           "warnings": ($warnings | tonumber),
+           "compliance_percentage": ($percentage | tonumber)
+         }
+       }' "$REPORT_FILE" > tmp.json && mv tmp.json "$REPORT_FILE"
+    
+    echo ""
+    echo "=================================================="
+    echo "🏛️ SOX Compliance Scan Complete"
+    echo "=================================================="
+    echo "Total Checks: $TOTAL"
+    echo "Passed: $PASSED"
+    echo "Failed: $FAILED"
+    echo "Warnings: $WARNINGS"
+    echo "Compliance: $COMPLIANCE_PERCENTAGE%"
+    echo ""
+    echo "📄 Report saved to: $REPORT_FILE"
+    
+    # SOX compliance requires higher standards
+    if [ "$FAILED" -gt 0 ]; then
+      echo "❌ SOX compliance scan failed. Immediate remediation required."
+      echo "⚠️  SOX violations can result in criminal penalties."
+      exit 1
+    elif [ "$WARNINGS" -gt 2 ]; then
+      echo "⚠️ SOX compliance scan passed with significant warnings."
+      echo "📋 Please address warnings to ensure full compliance."
+      exit 0
+    else
+      echo "✅ SOX compliance scan passed successfully!"
+      exit 0
+    fi

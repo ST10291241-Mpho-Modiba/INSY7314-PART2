@@ -1,0 +1,564 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gdpr-compliance-config
+  namespace: banking-app
+data:
+  gdpr-requirements.yaml: |
+    # GDPR (General Data Protection Regulation) Compliance Requirements
+    
+    requirements:
+      # Article 5: Principles of Processing
+      article_5:
+        name: "Principles of Processing"
+        description: "Lawfulness, fairness, transparency, purpose limitation, data minimization"
+        controls:
+          - data_minimization
+          - purpose_limitation
+          - transparency
+        checks:
+          - name: "Data Minimization"
+            description: "Verify only necessary personal data is collected and processed"
+            command: "grep -r 'personal.*data\\|user.*data' Backend/ | grep -v 'minimal\\|necessary'"
+            expected: "minimal_data_collection"
+          - name: "Purpose Limitation"
+            description: "Verify data is processed only for specified purposes"
+            command: "grep -r 'data.*purpose\\|processing.*purpose' Backend/"
+            expected: "purpose_documented"
+          - name: "Transparency"
+            description: "Verify privacy policy and data processing transparency"
+            command: "find Frontend/ -name '*.tsx' -o -name '*.ts' | xargs grep -l 'privacy\\|consent\\|data.*processing'"
+            expected: "transparency_implemented"
+      
+      # Article 6: Lawfulness of Processing
+      article_6:
+        name: "Lawfulness of Processing"
+        description: "Legal basis for processing personal data"
+        controls:
+          - legal_basis
+          - consent_management
+          - legitimate_interest
+        checks:
+          - name: "Legal Basis Documentation"
+            description: "Verify legal basis for data processing is documented"
+            command: "grep -r 'legal.*basis\\|consent\\|legitimate.*interest' Backend/"
+            expected: "legal_basis_documented"
+          - name: "Consent Management"
+            description: "Verify consent management system is implemented"
+            command: "find Frontend/ -name '*.tsx' | xargs grep -l 'consent\\|agree\\|accept.*terms'"
+            expected: "consent_system_present"
+      
+      # Article 7: Conditions for Consent
+      article_7:
+        name: "Conditions for Consent"
+        description: "Conditions for consent including withdrawal"
+        controls:
+          - consent_withdrawal
+          - consent_granularity
+          - consent_records
+        checks:
+          - name: "Consent Withdrawal"
+            description: "Verify users can withdraw consent easily"
+            command: "find Frontend/ -name '*.tsx' | xargs grep -l 'withdraw.*consent\\|revoke.*consent'"
+            expected: "withdrawal_mechanism"
+          - name: "Consent Records"
+            description: "Verify consent is properly recorded and tracked"
+            command: "grep -r 'consent.*log\\|consent.*record' Backend/"
+            expected: "consent_tracking"
+      
+      # Article 12-14: Information and Access
+      article_12_14:
+        name: "Information and Access"
+        description: "Transparent information and right of access"
+        controls:
+          - privacy_notice
+          - data_access
+          - information_provision
+        checks:
+          - name: "Privacy Notice"
+            description: "Verify comprehensive privacy notice is provided"
+            command: "find Frontend/ -name '*.tsx' -o -name '*.ts' | xargs grep -l 'privacy.*policy\\|privacy.*notice'"
+            expected: "privacy_notice_present"
+          - name: "Data Access Rights"
+            description: "Verify users can access their personal data"
+            command: "grep -r 'data.*access\\|export.*data\\|download.*data' Backend/"
+            expected: "access_rights_implemented"
+      
+      # Article 15: Right of Access
+      article_15:
+        name: "Right of Access"
+        description: "Data subject's right to access personal data"
+        controls:
+          - data_portability
+          - access_request
+          - data_export
+        checks:
+          - name: "Data Export Functionality"
+            description: "Verify users can export their data"
+            command: "grep -r 'export.*user.*data\\|download.*profile' Backend/"
+            expected: "export_functionality"
+          - name: "Access Request Processing"
+            description: "Verify access requests are properly handled"
+            command: "grep -r 'access.*request\\|data.*request' Backend/"
+            expected: "access_request_handling"
+      
+      # Article 16: Right to Rectification
+      article_16:
+        name: "Right to Rectification"
+        description: "Data subject's right to rectify inaccurate data"
+        controls:
+          - data_correction
+          - update_mechanisms
+          - accuracy_maintenance
+        checks:
+          - name: "Data Correction"
+            description: "Verify users can correct their personal data"
+            command: "find Frontend/ -name '*.tsx' | xargs grep -l 'edit.*profile\\|update.*information'"
+            expected: "correction_functionality"
+          - name: "Data Accuracy"
+            description: "Verify data accuracy maintenance procedures"
+            command: "grep -r 'data.*validation\\|accuracy.*check' Backend/"
+            expected: "accuracy_controls"
+      
+      # Article 17: Right to Erasure
+      article_17:
+        name: "Right to Erasure (Right to be Forgotten)"
+        description: "Data subject's right to erasure of personal data"
+        controls:
+          - data_deletion
+          - erasure_procedures
+          - deletion_verification
+        checks:
+          - name: "Account Deletion"
+            description: "Verify users can delete their accounts and data"
+            command: "grep -r 'delete.*account\\|remove.*user\\|erasure' Backend/"
+            expected: "deletion_functionality"
+          - name: "Data Purging"
+            description: "Verify complete data purging procedures"
+            command: "grep -r 'purge.*data\\|permanent.*delete' Backend/"
+            expected: "purging_procedures"
+      
+      # Article 18: Right to Restriction
+      article_18:
+        name: "Right to Restriction of Processing"
+        description: "Data subject's right to restrict processing"
+        controls:
+          - processing_restriction
+          - data_blocking
+          - restriction_management
+        checks:
+          - name: "Processing Restriction"
+            description: "Verify users can restrict data processing"
+            command: "grep -r 'restrict.*processing\\|block.*data' Backend/"
+            expected: "restriction_functionality"
+      
+      # Article 20: Right to Data Portability
+      article_20:
+        name: "Right to Data Portability"
+        description: "Data subject's right to data portability"
+        controls:
+          - data_portability
+          - structured_format
+          - machine_readable
+        checks:
+          - name: "Data Portability"
+            description: "Verify data can be exported in structured format"
+            command: "grep -r 'json\\|xml\\|csv.*export' Backend/"
+            expected: "portable_format"
+          - name: "Machine Readable Format"
+            description: "Verify data export is machine-readable"
+            command: "grep -r 'machine.*readable\\|structured.*data' Backend/"
+            expected: "machine_readable"
+      
+      # Article 25: Data Protection by Design and Default
+      article_25:
+        name: "Data Protection by Design and Default"
+        description: "Privacy by design and default implementation"
+        controls:
+          - privacy_by_design
+          - default_privacy_settings
+          - technical_measures
+        checks:
+          - name: "Privacy by Design"
+            description: "Verify privacy-by-design principles are implemented"
+            command: "grep -r 'privacy.*design\\|data.*protection.*design' Backend/"
+            expected: "privacy_design_implemented"
+          - name: "Default Privacy Settings"
+            description: "Verify privacy-friendly default settings"
+            command: "grep -r 'default.*privacy\\|privacy.*default' Frontend/"
+            expected: "privacy_defaults"
+      
+      # Article 32: Security of Processing
+      article_32:
+        name: "Security of Processing"
+        description: "Appropriate technical and organizational measures"
+        controls:
+          - encryption
+          - access_controls
+          - security_measures
+        checks:
+          - name: "Data Encryption"
+            description: "Verify personal data is encrypted"
+            command: "grep -r 'encrypt\\|crypto\\|hash' Backend/ | grep -v 'test'"
+            expected: "encryption_implemented"
+          - name: "Access Controls"
+            description: "Verify appropriate access controls are in place"
+            command: "kubectl get networkpolicies -n banking-app"
+            expected: "access_controls_configured"
+          - name: "Security Monitoring"
+            description: "Verify security monitoring for personal data"
+            command: "grep -r 'security.*log\\|audit.*personal' monitoring/"
+            expected: "security_monitoring"
+      
+      # Article 33-34: Data Breach Notification
+      article_33_34:
+        name: "Data Breach Notification"
+        description: "Notification of personal data breaches"
+        controls:
+          - breach_detection
+          - notification_procedures
+          - incident_response
+        checks:
+          - name: "Breach Detection"
+            description: "Verify data breach detection mechanisms"
+            command: "grep -r 'breach.*detection\\|data.*breach' monitoring/"
+            expected: "breach_detection_configured"
+          - name: "Incident Response"
+            description: "Verify incident response procedures for data breaches"
+            command: "grep -r 'incident.*response\\|breach.*response' monitoring/"
+            expected: "incident_response_procedures"
+      
+      # Article 35: Data Protection Impact Assessment
+      article_35:
+        name: "Data Protection Impact Assessment (DPIA)"
+        description: "DPIA for high-risk processing activities"
+        controls:
+          - dpia_procedures
+          - risk_assessment
+          - impact_evaluation
+        checks:
+          - name: "DPIA Documentation"
+            description: "Verify DPIA documentation exists"
+            command: "find . -name '*dpia*' -o -name '*impact*assessment*'"
+            expected: "dpia_documented"
+          - name: "Risk Assessment"
+            description: "Verify privacy risk assessments are conducted"
+            command: "grep -r 'privacy.*risk\\|data.*risk' compliance/"
+            expected: "risk_assessment_present"
+
+  gdpr-scan.sh: |
+    #!/bin/bash
+    
+    # GDPR Compliance Scanner for Banking Application
+    set -euo pipefail
+    
+    echo "🇪🇺 Starting GDPR Compliance Scan for Banking Application..."
+    echo "=================================================="
+    
+    NAMESPACE="banking-app"
+    REPORT_FILE="gdpr-compliance-report-$(date +%Y%m%d-%H%M%S).json"
+    PASSED=0
+    FAILED=0
+    WARNINGS=0
+    
+    # Initialize report
+    cat > "$REPORT_FILE" << EOF
+    {
+      "scan_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+      "application": "Banking Application",
+      "standard": "GDPR (General Data Protection Regulation)",
+      "namespace": "$NAMESPACE",
+      "results": []
+    }
+    EOF
+    
+    # Function to add result to report
+    add_result() {
+      local article="$1"
+      local article_name="$2"
+      local check_name="$3"
+      local status="$4"
+      local details="$5"
+      
+      jq --arg article "$article" \
+         --arg article_name "$article_name" \
+         --arg check_name "$check_name" \
+         --arg status "$status" \
+         --arg details "$details" \
+         '.results += [{
+           "article": $article,
+           "article_name": $article_name,
+           "check_name": $check_name,
+           "status": $status,
+           "details": $details,
+           "timestamp": now | strftime("%Y-%m-%dT%H:%M:%SZ")
+         }]' "$REPORT_FILE" > tmp.json && mv tmp.json "$REPORT_FILE"
+    }
+    
+    # Article 5: Principles of Processing
+    echo "📋 Checking Article 5: Principles of Processing..."
+    
+    # Check data minimization
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "minimal\|necessary\|required.*only" | grep -q "."; then
+      echo "✅ Data minimization principles implemented"
+      add_result "5" "Principles of Processing" "Data Minimization" "PASS" "Data minimization practices found in code"
+      ((PASSED++))
+    else
+      echo "⚠️ Data minimization needs verification"
+      add_result "5" "Principles of Processing" "Data Minimization" "WARNING" "Data minimization practices not explicitly found"
+      ((WARNINGS++))
+    fi
+    
+    # Check transparency
+    if find Frontend/ -name "*.tsx" -o -name "*.ts" 2>/dev/null | xargs grep -l "privacy\|consent\|data.*processing" | grep -q "."; then
+      echo "✅ Transparency measures implemented"
+      add_result "5" "Principles of Processing" "Transparency" "PASS" "Privacy and consent interfaces found"
+      ((PASSED++))
+    else
+      echo "❌ Transparency measures missing"
+      add_result "5" "Principles of Processing" "Transparency" "FAIL" "No privacy or consent interfaces found"
+      ((FAILED++))
+    fi
+    
+    # Article 6: Lawfulness of Processing
+    echo "⚖️ Checking Article 6: Lawfulness of Processing..."
+    
+    # Check consent management
+    if find Frontend/ -name "*.tsx" 2>/dev/null | xargs grep -l "consent\|agree\|accept.*terms" | grep -q "."; then
+      echo "✅ Consent management system present"
+      add_result "6" "Lawfulness of Processing" "Consent Management" "PASS" "Consent interfaces found in frontend"
+      ((PASSED++))
+    else
+      echo "❌ Consent management system missing"
+      add_result "6" "Lawfulness of Processing" "Consent Management" "FAIL" "No consent management interfaces found"
+      ((FAILED++))
+    fi
+    
+    # Article 7: Conditions for Consent
+    echo "✋ Checking Article 7: Conditions for Consent..."
+    
+    # Check consent withdrawal
+    if find Frontend/ -name "*.tsx" 2>/dev/null | xargs grep -l "withdraw.*consent\|revoke.*consent" | grep -q "."; then
+      echo "✅ Consent withdrawal mechanism present"
+      add_result "7" "Conditions for Consent" "Consent Withdrawal" "PASS" "Consent withdrawal functionality found"
+      ((PASSED++))
+    else
+      echo "❌ Consent withdrawal mechanism missing"
+      add_result "7" "Conditions for Consent" "Consent Withdrawal" "FAIL" "No consent withdrawal functionality found"
+      ((FAILED++))
+    fi
+    
+    # Article 15: Right of Access
+    echo "👁️ Checking Article 15: Right of Access..."
+    
+    # Check data export functionality
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "export.*user.*data\|download.*profile" | grep -q "."; then
+      echo "✅ Data export functionality present"
+      add_result "15" "Right of Access" "Data Export" "PASS" "Data export functionality found in backend"
+      ((PASSED++))
+    else
+      echo "❌ Data export functionality missing"
+      add_result "15" "Right of Access" "Data Export" "FAIL" "No data export functionality found"
+      ((FAILED++))
+    fi
+    
+    # Article 16: Right to Rectification
+    echo "✏️ Checking Article 16: Right to Rectification..."
+    
+    # Check data correction
+    if find Frontend/ -name "*.tsx" 2>/dev/null | xargs grep -l "edit.*profile\|update.*information" | grep -q "."; then
+      echo "✅ Data correction functionality present"
+      add_result "16" "Right to Rectification" "Data Correction" "PASS" "Profile editing functionality found"
+      ((PASSED++))
+    else
+      echo "❌ Data correction functionality missing"
+      add_result "16" "Right to Rectification" "Data Correction" "FAIL" "No profile editing functionality found"
+      ((FAILED++))
+    fi
+    
+    # Article 17: Right to Erasure
+    echo "🗑️ Checking Article 17: Right to Erasure..."
+    
+    # Check account deletion
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "delete.*account\|remove.*user\|erasure" | grep -q "."; then
+      echo "✅ Account deletion functionality present"
+      add_result "17" "Right to Erasure" "Account Deletion" "PASS" "Account deletion functionality found"
+      ((PASSED++))
+    else
+      echo "❌ Account deletion functionality missing"
+      add_result "17" "Right to Erasure" "Account Deletion" "FAIL" "No account deletion functionality found"
+      ((FAILED++))
+    fi
+    
+    # Article 20: Right to Data Portability
+    echo "📦 Checking Article 20: Right to Data Portability..."
+    
+    # Check data portability
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "json\|xml\|csv.*export" | grep -q "."; then
+      echo "✅ Data portability functionality present"
+      add_result "20" "Right to Data Portability" "Data Portability" "PASS" "Structured data export found"
+      ((PASSED++))
+    else
+      echo "❌ Data portability functionality missing"
+      add_result "20" "Right to Data Portability" "Data Portability" "FAIL" "No structured data export found"
+      ((FAILED++))
+    fi
+    
+    # Article 25: Data Protection by Design and Default
+    echo "🔧 Checking Article 25: Data Protection by Design and Default..."
+    
+    # Check privacy by design
+    if find Frontend/ -name "*.tsx" -o -name "*.ts" 2>/dev/null | xargs grep -l "default.*privacy\|privacy.*default" | grep -q "."; then
+      echo "✅ Privacy by default settings present"
+      add_result "25" "Data Protection by Design" "Privacy by Default" "PASS" "Privacy-friendly default settings found"
+      ((PASSED++))
+    else
+      echo "⚠️ Privacy by default settings need verification"
+      add_result "25" "Data Protection by Design" "Privacy by Default" "WARNING" "Privacy-friendly defaults not explicitly found"
+      ((WARNINGS++))
+    fi
+    
+    # Article 32: Security of Processing
+    echo "🔒 Checking Article 32: Security of Processing..."
+    
+    # Check data encryption
+    if find Backend/ -name "*.ts" -o -name "*.js" 2>/dev/null | xargs grep -l "encrypt\|crypto\|hash" | grep -v "test" | grep -q "."; then
+      echo "✅ Data encryption implemented"
+      add_result "32" "Security of Processing" "Data Encryption" "PASS" "Encryption functionality found in backend"
+      ((PASSED++))
+    else
+      echo "❌ Data encryption not implemented"
+      add_result "32" "Security of Processing" "Data Encryption" "FAIL" "No encryption functionality found"
+      ((FAILED++))
+    fi
+    
+    # Check access controls
+    if kubectl get networkpolicies -n "$NAMESPACE" 2>/dev/null | grep -q "banking-app"; then
+      echo "✅ Network access controls configured"
+      add_result "32" "Security of Processing" "Access Controls" "PASS" "Network policies are configured"
+      ((PASSED++))
+    else
+      echo "❌ Network access controls not configured"
+      add_result "32" "Security of Processing" "Access Controls" "FAIL" "No network policies found"
+      ((FAILED++))
+    fi
+    
+    # Check security monitoring
+    if find monitoring/ -name "*.yaml" -o -name "*.yml" 2>/dev/null | xargs grep -l "security.*log\|audit.*personal" | grep -q "."; then
+      echo "✅ Security monitoring configured"
+      add_result "32" "Security of Processing" "Security Monitoring" "PASS" "Security monitoring rules found"
+      ((PASSED++))
+    else
+      echo "❌ Security monitoring not configured"
+      add_result "32" "Security of Processing" "Security Monitoring" "FAIL" "No security monitoring rules found"
+      ((FAILED++))
+    fi
+    
+    # Article 33-34: Data Breach Notification
+    echo "🚨 Checking Article 33-34: Data Breach Notification..."
+    
+    # Check breach detection
+    if find monitoring/ -name "*.yaml" -o -name "*.yml" 2>/dev/null | xargs grep -l "breach.*detection\|data.*breach" | grep -q "."; then
+      echo "✅ Breach detection configured"
+      add_result "33-34" "Data Breach Notification" "Breach Detection" "PASS" "Breach detection rules found"
+      ((PASSED++))
+    else
+      echo "❌ Breach detection not configured"
+      add_result "33-34" "Data Breach Notification" "Breach Detection" "FAIL" "No breach detection rules found"
+      ((FAILED++))
+    fi
+    
+    # Article 35: Data Protection Impact Assessment
+    echo "📊 Checking Article 35: Data Protection Impact Assessment..."
+    
+    # Check DPIA documentation
+    if find . -name "*dpia*" -o -name "*impact*assessment*" 2>/dev/null | grep -q "."; then
+      echo "✅ DPIA documentation present"
+      add_result "35" "Data Protection Impact Assessment" "DPIA Documentation" "PASS" "DPIA documentation found"
+      ((PASSED++))
+    else
+      echo "⚠️ DPIA documentation needs creation"
+      add_result "35" "Data Protection Impact Assessment" "DPIA Documentation" "WARNING" "No DPIA documentation found"
+      ((WARNINGS++))
+    fi
+    
+    # Additional GDPR-specific checks
+    echo "🔍 Performing additional GDPR compliance checks..."
+    
+    # Check for data retention policies
+    if find . -name "*.yaml" -o -name "*.yml" 2>/dev/null | xargs grep -l "retention\|delete.*after" | grep -q "."; then
+      echo "✅ Data retention policies configured"
+      add_result "General" "Data Retention" "Retention Policies" "PASS" "Data retention policies found"
+      ((PASSED++))
+    else
+      echo "❌ Data retention policies not configured"
+      add_result "General" "Data Retention" "Retention Policies" "FAIL" "No data retention policies found"
+      ((FAILED++))
+    fi
+    
+    # Check for privacy policy
+    if find Frontend/ -name "*.tsx" -o -name "*.ts" 2>/dev/null | xargs grep -l "privacy.*policy\|privacy.*notice" | grep -q "."; then
+      echo "✅ Privacy policy interface present"
+      add_result "General" "Privacy Notice" "Privacy Policy" "PASS" "Privacy policy interface found"
+      ((PASSED++))
+    else
+      echo "❌ Privacy policy interface missing"
+      add_result "General" "Privacy Notice" "Privacy Policy" "FAIL" "No privacy policy interface found"
+      ((FAILED++))
+    fi
+    
+    # Check for cookie consent
+    if find Frontend/ -name "*.tsx" -o -name "*.ts" 2>/dev/null | xargs grep -l "cookie.*consent\|cookie.*banner" | grep -q "."; then
+      echo "✅ Cookie consent mechanism present"
+      add_result "General" "Cookie Compliance" "Cookie Consent" "PASS" "Cookie consent mechanism found"
+      ((PASSED++))
+    else
+      echo "⚠️ Cookie consent mechanism needs verification"
+      add_result "General" "Cookie Compliance" "Cookie Consent" "WARNING" "Cookie consent mechanism not found"
+      ((WARNINGS++))
+    fi
+    
+    # Generate summary
+    TOTAL=$((PASSED + FAILED + WARNINGS))
+    COMPLIANCE_PERCENTAGE=$((PASSED * 100 / TOTAL))
+    
+    jq --arg total "$TOTAL" \
+       --arg passed "$PASSED" \
+       --arg failed "$FAILED" \
+       --arg warnings "$WARNINGS" \
+       --arg percentage "$COMPLIANCE_PERCENTAGE" \
+       '. += {
+         "summary": {
+           "total_checks": ($total | tonumber),
+           "passed": ($passed | tonumber),
+           "failed": ($failed | tonumber),
+           "warnings": ($warnings | tonumber),
+           "compliance_percentage": ($percentage | tonumber)
+         }
+       }' "$REPORT_FILE" > tmp.json && mv tmp.json "$REPORT_FILE"
+    
+    echo ""
+    echo "=================================================="
+    echo "🇪🇺 GDPR Compliance Scan Complete"
+    echo "=================================================="
+    echo "Total Checks: $TOTAL"
+    echo "Passed: $PASSED"
+    echo "Failed: $FAILED"
+    echo "Warnings: $WARNINGS"
+    echo "Compliance: $COMPLIANCE_PERCENTAGE%"
+    echo ""
+    echo "📄 Report saved to: $REPORT_FILE"
+    
+    # GDPR compliance is mandatory for EU operations
+    if [ "$FAILED" -gt 0 ]; then
+      echo "❌ GDPR compliance scan failed. Immediate remediation required."
+      echo "⚠️  GDPR violations can result in fines up to 4% of annual revenue."
+      exit 1
+    elif [ "$WARNINGS" -gt 3 ]; then
+      echo "⚠️ GDPR compliance scan passed with significant warnings."
+      echo "📋 Please address warnings to ensure full compliance."
+      exit 0
+    else
+      echo "✅ GDPR compliance scan passed successfully!"
+      exit 0
+    fi

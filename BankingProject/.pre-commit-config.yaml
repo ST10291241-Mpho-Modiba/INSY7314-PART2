@@ -1,0 +1,191 @@
+repos:
+  # General code quality and formatting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: detect-private-key
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-symlinks
+      - id: destroyed-symlinks
+
+  # JavaScript/TypeScript linting and formatting
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.57.0
+    hooks:
+      - id: eslint
+        files: \.(js|jsx|ts|tsx)$
+        types: [file]
+        additional_dependencies:
+          - eslint@8.57.0
+          - '@typescript-eslint/parser@6.21.0'
+          - '@typescript-eslint/eslint-plugin@6.21.0'
+          - eslint-plugin-react@7.33.2
+          - eslint-plugin-react-hooks@4.6.0
+          - eslint-plugin-security@1.7.1
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.3
+    hooks:
+      - id: prettier
+        files: \.(js|jsx|ts|tsx|json|css|scss|md|yaml|yml)$
+
+  # Security scanning
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package-lock.json
+
+  - repo: https://github.com/gitguardian/ggshield
+    rev: v1.25.0
+    hooks:
+      - id: ggshield
+        language: python
+        stages: [commit]
+
+  - repo: https://github.com/trufflesecurity/trufflehog
+    rev: v3.63.2
+    hooks:
+      - id: trufflehog
+        name: TruffleHog
+        description: Detect secrets in your data.
+        entry: bash -c 'trufflehog git file://. --since-commit HEAD --only-verified --fail'
+        language: system
+        stages: ["commit", "push"]
+
+  # Dependency security scanning
+  - repo: local
+    hooks:
+      - id: npm-audit
+        name: npm audit
+        entry: npm audit --audit-level moderate
+        language: system
+        files: package\.json$
+        pass_filenames: false
+
+      - id: npm-audit-fix
+        name: npm audit fix
+        entry: npm audit fix
+        language: system
+        files: package\.json$
+        pass_filenames: false
+        stages: [manual]
+
+  # Docker security scanning
+  - repo: local
+    hooks:
+      - id: hadolint
+        name: Hadolint
+        description: Lint Dockerfiles
+        entry: hadolint
+        language: system
+        files: Dockerfile.*
+        args: ['--config', '.hadolint.yaml']
+
+      - id: trivy-dockerfile
+        name: Trivy Dockerfile scan
+        entry: trivy config --exit-code 1 --severity HIGH,CRITICAL
+        language: system
+        files: Dockerfile.*
+        pass_filenames: true
+
+  # Infrastructure as Code security
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: 3.1.34
+    hooks:
+      - id: checkov
+        args: [--framework, kubernetes, --framework, dockerfile]
+        files: \.(yaml|yml|json|dockerfile|Dockerfile)$
+
+  # YAML and Kubernetes validation
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yaml]
+
+  - repo: https://github.com/instrumenta/kubeval
+    rev: v0.16.1
+    hooks:
+      - id: kubeval
+        files: k8s/.*\.yaml$
+
+  # Git commit message validation
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # License compliance
+  - repo: local
+    hooks:
+      - id: license-check
+        name: License Check
+        entry: license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD'
+        language: system
+        files: package\.json$
+        pass_filenames: false
+
+  # Custom security checks
+  - repo: local
+    hooks:
+      - id: check-hardcoded-secrets
+        name: Check for hardcoded secrets
+        entry: bash -c 'grep -r -E "(password|secret|key|token)\s*=\s*[\"'\''][^\"'\'']+[\"'\'']" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" --exclude-dir=node_modules . && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+
+      - id: check-console-logs
+        name: Check for console.log statements
+        entry: bash -c 'grep -r "console\.(log|debug|info)" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" --exclude-dir=node_modules . && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+        stages: [manual]
+
+      - id: check-todo-fixme
+        name: Check for TODO/FIXME comments
+        entry: bash -c 'grep -r -E "(TODO|FIXME|XXX|HACK)" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" --exclude-dir=node_modules . && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+        stages: [manual]
+
+  # Banking-specific security checks
+  - repo: local
+    hooks:
+      - id: check-sensitive-data
+        name: Check for sensitive banking data
+        entry: bash -c 'grep -r -E "(credit.?card|ssn|social.?security|account.?number|routing.?number)" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" --exclude-dir=node_modules . && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+
+      - id: check-encryption
+        name: Check for proper encryption usage
+        entry: bash -c 'grep -r -E "(md5|sha1)\(" --include="*.js" --include="*.ts" --exclude-dir=node_modules . && echo "Warning: Weak hashing algorithms detected" && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+
+default_language_version:
+  python: python3
+  node: '18.19.0'
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

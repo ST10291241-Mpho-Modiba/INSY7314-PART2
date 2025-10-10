@@ -1,0 +1,84 @@
+ignored:
+  # Allow specific base images for banking security
+  - DL3006  # Always tag the version of an image explicitly
+  - DL3008  # Pin versions in apt get install
+  - DL3009  # Delete the apt-get lists after installing something
+  - DL3015  # Avoid additional packages by specifying `--no-install-recommends`
+
+trustedRegistries:
+  - docker.io
+  - gcr.io
+  - quay.io
+  - registry.access.redhat.com
+
+override:
+  error:
+    - DL3001  # For security, switching to non-root user
+    - DL3002  # Last user should not be root
+    - DL3003  # Use WORKDIR to switch to a directory
+    - DL3020  # Use COPY instead of ADD for files and folders
+    - DL3025  # Use arguments JSON notation for CMD and ENTRYPOINT arguments
+    - DL4001  # Either use Wget or Curl but not both
+    - DL4003  # Multiple `CMD` instructions found
+    - DL4004  # Multiple `ENTRYPOINT` instructions found
+    - DL4006  # Set the `SHELL` option -o pipefail before RUN with a pipe in it
+
+  warning:
+    - DL3007  # Using latest is prone to errors
+    - DL3010  # Use ADD for extracting archives into an image
+    - DL3013  # Pin versions in pip
+    - DL3016  # Pin versions in npm
+    - DL3018  # Pin versions in apk add
+    - DL3019  # Use the `--no-cache` switch to avoid the need to use `--update` and remove `/var/cache/apk/*` when done installing packages
+    - DL3021  # `COPY` with more than 2 arguments requires the last argument to end with `/`
+    - DL3022  # `COPY --from` should reference a previously defined `FROM` alias
+    - DL3023  # `COPY --from` cannot reference its own `FROM` alias
+    - DL3024  # `FROM` aliases (stage names) must be unique
+    - DL3026  # Use only an allowed registry in the FROM image
+    - DL3027  # Do not use `apt` as it is meant to be an end-user tool, use `apt-get` or `apt-cache` instead
+    - DL3028  # Pin versions in gem install
+    - DL3029  # Do not use --platform flag with FROM
+    - DL3030  # Use the `-y` switch to avoid manual input `yum install -y <package>`
+    - DL3032  # `yum clean all` missing after `yum` command
+    - DL3033  # Specify version with `yum install -y <package>-<version>`
+    - DL3034  # Non-interactive switch missing from `zypper` command
+    - DL3035  # Do not use `zypper dist-upgrade`
+    - DL3036  # `zypper clean` missing after `zypper` command
+    - DL3037  # Specify version with `zypper install -y <package>=<version>`
+    - DL3038  # Use the `-y` switch to avoid manual input `dnf install -y <package>`
+    - DL3039  # `dnf clean all` missing after `dnf` command
+    - DL3040  # `dnf autoremove` missing after `dnf` command
+    - DL3041  # Specify version with `dnf install -y <package>-<version>`
+    - DL3042  # Avoid cache directory with `pip install --no-cache-dir <package>`
+    - DL3043  # `ONBUILD`, `FROM` or `MAINTAINER` triggered from within `ONBUILD` instruction
+    - DL3044  # Do not use `sudo` as it leads to unpredictable behavior
+    - DL3045  # `COPY` to a relative destination without `WORKDIR` set
+    - DL3046  # `useradd` without flag `-l` and high UID will result in excessively large Image
+    - DL3047  # `wget` without flag `--progress` will result in excessively verbose log output
+    - DL3048  # Invalid Label Key
+    - DL3049  # Label `<label>` is missing
+    - DL3050  # Superfluous label(s) present
+    - DL3051  # Label `<label>` is empty
+    - DL3052  # Label `<label>` is not a valid URL
+    - DL3053  # Label `<label>` is not a valid email format
+    - DL3054  # Label `<label>` is not a valid phone format
+    - DL3055  # Label `<label>` is not a valid SPDX license identifier
+    - DL3056  # Label `<label>` does not match regex
+    - DL3057  # `HEALTHCHECK` instruction missing
+    - DL3058  # Label `<label>` is not a valid semantic version
+    - DL3059  # Multiple consecutive `RUN` instructions
+    - DL3060  # `yarn cache clean` missing after `yarn install`
+
+  info:
+    - DL3004  # Do not use sudo as it leads to unpredictable behavior
+    - DL3005  # Do not use apt-get upgrade or dist-upgrade
+    - DL3011  # Valid UNIX ports range from 0 to 65535
+    - DL3012  # Provide an email address or URL as maintainer
+    - DL3014  # Use the `-y` switch to avoid manual input `apt-get install -y <package>`
+    - DL3017  # Do not use `apk upgrade`
+    - DL4005  # Use `SHELL` to change the default shell
+
+format: tty
+noColor: false
+noFail: false
+verbose: false
