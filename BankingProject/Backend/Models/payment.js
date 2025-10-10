@@ -30,8 +30,7 @@ const paymentSchema = new mongoose.Schema({
   },
   transactionId: {
     type: String,
-    unique: true,
-    required: true
+    default:  `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   },
   description: {
     type: String,
@@ -47,13 +46,8 @@ const paymentSchema = new mongoose.Schema({
     default: Date.now
   }
 });
-
 paymentSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
-  next();
-});
-
-paymentSchema.pre('save', function(next) {
   if (!this.transactionId) {
     // Generate a unique transaction ID
     this.transactionId = `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
