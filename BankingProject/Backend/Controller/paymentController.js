@@ -210,4 +210,110 @@ export const getTransactions = async (req, res) => {
   }
 };
 
+// Get all transactions for employee portal (requires employee role)
+export const getAllTransactions = async (req, res) => {
+  try {
+    // If DB is not connected, return an empty list gracefully
+    const mongoose = (await import('mongoose')).default;
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(200).json([]);
+    }
+
+    // Get all transactions (for employee verification)
+    const payments = await Payment.find()
+      .populate('userId', 'username email')
+      .sort({ createdAt: -1 })
+      .limit(100); // Limit to last 100 transactions
+
+    const transactions = payments.map(payment => ({
+      id: payment._id.toString(),
+      userId: payment.userId?._id?.toString(),
+      username: payment.userId?.username,
+      email: payment.userId?.email,
+      description: payment.description || `Payment to ${payment.recipient}`,
+      recipient: payment.recipient,
+      amount: payment.amount,
+      currency: payment.currency,
+      date: payment.createdAt,
+      status: payment.status,
+      transactionId: payment.transactionId,
+      swiftCode: payment.swiftCode,
+      submittedBy: payment.submittedBy,
+      submittedAt: payment.submittedAt
+    }));
+
+    res.status(200).json(transactions);
+  } catch (err) {
+    console.error('Get all transactions error:', err);
+    res.status(500).json({ 
+      msg: err.message || 'Failed to fetch transactions' 
+    });
+  }
+};
+
+// Submit transaction to SWIFT (requires employee role)
+export const submitToSWIFT = async (req, res) => {
+  try {
+    const { transactionId, swiftCode } = req.body;
+    const employeeId = req.user.id; // Employee who is submitting
+
+    // If DB is not connected, return 503 to avoid timeouts
+    const mongoose = (await import('mongoose')).default;
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ msg: 'Database not connected. Please try again later.' });
+    }
+
+    // Validate transaction ID
+    if (!transactionId) {
+      return res.status(400).json({ 
+        msg: 'Transaction ID is required' 
+      });
+    }
+
+    // Find the transaction
+    const payment = await Payment.findOne({ transactionId });
+    if (!payment) {
+      return res.status(404).json({ 
+        msg: 'Transaction not found' 
+      });
+    }
+
+    // Check if already submitted
+    if (payment.status === 'submitted_to_swift') {
+      return res.status(400).json({ 
+        msg: 'Transaction has already been submitted to SWIFT' 
+      });
+    }
+
+    // Update transaction with SWIFT code and status
+    payment.swiftCode = swiftCode || payment.swiftCode;
+    payment.status = 'submitted_to_swift';
+    payment.submittedBy = employeeId;
+    payment.submittedAt = new Date();
+    
+    await payment.save();
+
+    // Audit trail logging
+    console.log(`[AUDIT] Transaction ${transactionId} submitted to SWIFT by employee ${employeeId} at ${new Date().toISOString()}`);
+    console.log(`[AUDIT] SWIFT Code: ${swiftCode || 'N/A'}, Amount: ${payment.amount} ${payment.currency}, Recipient: ${payment.recipient}`);
+
+    res.status(200).json({ 
+      msg: 'Transaction successfully submitted to SWIFT',
+      transaction: {
+        transactionId: payment.transactionId,
+        status: payment.status,
+        swiftCode: payment.swiftCode,
+        submittedAt: payment.submittedAt,
+        submittedBy: employeeId
+      },
+      success: true
+    });
+  } catch (err) {
+    console.error('Submit to SWIFT error:', err);
+    res.status(500).json({ 
+      msg: err.message || 'Failed to submit transaction to SWIFT' 
+    });
+  }
+};
+
 export default ProcessPayments;

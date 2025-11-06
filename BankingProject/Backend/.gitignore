@@ -1,0 +1,19 @@
+# Node
+node_modules/
+coverage/
+logs/
+*.log
+
+# Build caches
+.cache/
+.tmp/
+
+# Env and secrets
+.env
+Certs/
+*.pem
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

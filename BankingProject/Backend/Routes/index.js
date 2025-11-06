@@ -4,6 +4,7 @@ import router2 from './authRoutes.js'
 import paymentRouter from './payment.js'
 import { getAccount, getTransactions } from '../Controller/paymentController.js'
 import auth from '../Middleware/auth.js'
+import { generateCSRFToken } from '../Middleware/csrf.js'
 
 const router = express.Router();
 
@@ -14,6 +15,11 @@ router.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     status: 'healthy'
   });
+});
+
+// CSRF token endpoint for clients/tests to retrieve token without DB operations
+router.get('/csrf-token', generateCSRFToken, (req, res) => {
+  res.status(200).json({ csrfToken: res.locals.csrfToken });
 });
 
 // Account and transactions endpoints (directly under /api)

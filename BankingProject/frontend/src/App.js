@@ -5,14 +5,16 @@ import { Toaster } from 'sonner';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Payments from './components/Payments';
+import UserProfile from './components/UserProfile';
+import EmployeePortal from './components/EmployeePortal';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AppProvider, useAuth, useUI } from './contexts/AppProvider';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { OfflineProvider } from './contexts/OfflineContext';
 import ToastNotifications from './components/ui/ToastNotifications';
-import NotificationCenter, { NotificationBell } from './components/ui/NotificationCenter';
-import OfflineIndicator, { OfflineStatusBar } from './components/ui/OfflineIndicator';
+import NotificationCenter from './components/NotificationCenter';
+import { OfflineIndicator, OfflineStatusBar } from './components/ui/OfflineIndicator';
 import NotFoundPage from './pages/NotFoundPage';
 import ServerErrorPage from './pages/ServerErrorPage';
 import NetworkErrorPage from './pages/NetworkErrorPage';
@@ -30,7 +32,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: 3,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
     },
   },
 });
@@ -41,6 +43,21 @@ const ProtectedRoute = ({ children }) => {
   
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
+// Employee Route Component (requires employee role)
+const EmployeeRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  if (user?.role !== 'employee') {
+    return <Navigate to="/payments" replace />;
   }
   
   return children;
@@ -92,6 +109,12 @@ const AppRoutes = () => {
       case '/payments':
         pageName = 'Payments Dashboard';
         break;
+      case '/employee':
+        pageName = 'Employee Portal';
+        break;
+      case '/profile':
+        pageName = 'User Profile Page';
+        break;
       default:
         pageName = 'Banking Application';
     }
@@ -126,13 +149,22 @@ const AppRoutes = () => {
       {/* Notification Bell - only show when authenticated */}
       {isAuthenticated && (
         <div className="fixed top-4 right-4 z-40">
-          <NotificationBell 
-            onClick={() => setShowNotificationCenter(true)} 
-          />
+          <button
+            onClick={() => setShowNotificationCenter(true)}
+            className="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg bg-white shadow-lg"
+            aria-label="Open notifications"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </button>
         </div>
       )}
 
-      <main id="main-content" tabIndex="-1" className="focus:outline-none">
+      {/* Site banner for accessibility */}
+      <header role="banner" className="sr-only" aria-label="Application banner" />
+
+      <main id="main-content" role="main" tabIndex="-1" className="focus:outline-none">
         <Routes>
           <Route 
             path="/" 
@@ -156,7 +188,23 @@ const AppRoutes = () => {
               <ProtectedRoute>
                 <Payments />
               </ProtectedRoute>
-            } 
+            }
+          />
+          <Route 
+            path="/employee" 
+            element={
+              <EmployeeRoute>
+                <EmployeePortal />
+              </EmployeeRoute>
+            }
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
           />
           {/* Error Pages */}
           <Route path="/404" element={<NotFoundPage />} />
@@ -171,11 +219,7 @@ const AppRoutes = () => {
       {/* Toast Notifications */}
       <ToastNotifications />
       
-      {/* Notification Center */}
-      <NotificationCenter 
-        isOpen={showNotificationCenter}
-        onClose={() => setShowNotificationCenter(false)}
-      />
+      {/* Notification Center - handled internally */}
       
       {/* Sonner Toast (backup) */}
       <Toaster 

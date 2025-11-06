@@ -6,6 +6,9 @@ export const useOfflineStatus = () => {
   const [wasOffline, setWasOffline] = useState(false);
   const [offlineDuration, setOfflineDuration] = useState(0);
   const [queuedTransactions, setQueuedTransactions] = useState([]);
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState(null);
 
   useEffect(() => {
     let offlineStartTime = null;
@@ -29,6 +32,7 @@ export const useOfflineStatus = () => {
         
         // Load queued transactions when coming back online
         loadQueuedTransactions();
+        reconnect();
       }
     };
 
@@ -136,6 +140,32 @@ export const useOfflineStatus = () => {
     }
   };
 
+  const reconnect = async () => {
+    if (!isOnline) return;
+    
+    setIsSyncing(true);
+    setSyncError(null);
+    
+    try {
+      // Sync queued transactions
+      for (const transaction of queuedTransactions) {
+        try {
+          await serviceWorkerManager.syncTransaction(transaction);
+        } catch (error) {
+          console.error('Failed to sync transaction:', error);
+        }
+      }
+      
+      setLastSyncTime(new Date());
+      setQueuedTransactions([]);
+    } catch (error) {
+      setSyncError(error.message || 'Sync failed');
+      console.error('Reconnection failed:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return {
     isOnline,
     isOffline: !isOnline,
@@ -144,7 +174,11 @@ export const useOfflineStatus = () => {
     queuedTransactions,
     queueTransaction,
     loadQueuedTransactions,
-    getOfflineStatusInfo
+    getOfflineStatusInfo,
+    lastSyncTime,
+    isSyncing,
+    syncError,
+    reconnect
   };
 };
 

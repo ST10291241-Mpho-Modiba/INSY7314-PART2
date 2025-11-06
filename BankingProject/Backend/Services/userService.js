@@ -3,9 +3,12 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
 const generateToken =(newUser)=>{
-    return jwt.sign( 
-{id: newUser._id || newUser.id},process.env.JWT_SECRET, {expiresIn:'7d'} 
-    );
+    // Include role in JWT payload for RBAC
+    const payload = {
+        id: newUser._id || newUser.id,
+        role: newUser.role || 'user' // Default to 'user' if role not set
+    };
+    return jwt.sign(payload, process.env.JWT_SECRET, {expiresIn:'7d'});
 }
 
 export const signUpUser = async({username,email,password,firstName,lastName})=>{
@@ -111,7 +114,12 @@ export const LoginUser = async({email,password})=>{
     // Generate token and return user data
     const token = generateToken(user);
     return{
-        newUser:{id: user._id, username: user.username, email: user.email},
+        newUser:{
+            id: user._id, 
+            username: user.username, 
+            email: user.email,
+            role: user.role || 'user' // Include role in response
+        },
         token
     };
 };

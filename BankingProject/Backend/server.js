@@ -5,39 +5,42 @@ import https from 'https'
 import { Console } from 'console';
 import mongoose from 'mongoose';
 import routes from './Routes/index.js'
+import app from './app.js'
 import connectDB from './db/conn.js';
-import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import xss from 'xss-clean';
 import cors from 'cors';
 import helmet from 'helmet';
+import session from 'express-session';
+import { globalLimiter } from './Middleware/rateLimiters.js';
 
 // We are loading the enviroments variables from .env
 dotenv.config({ path: './.env' });
 
 //Initialise express app
-const app = express();
 const PORT = process.env.PORT || 5000;
 const USE_HTTPS = process.env.USE_HTTPS ==='true';
 
-app.use(helmet());
-app.use(morgan('dev'));
-// Adding middleware to parse JSON Bodies; Middleware using software that you did not create yourself
-app.use(express.json())
-
-const allowedOrigins = [
-    'https://localhost:5173',
-    'http://localhost:5173',
-    'https://localhost:3000',
-    'http://localhost:3000',
-];
-app.use(cors({
-    origin: allowedOrigins,
-    credentials: true,
-}))
-
-//routes 
-app.use('/api',routes);
+// Configure helmet with HSTS (1 year = 31536000 seconds)
+app.use(helmet({
+  hsts: {
+    maxAge: 31536000, // 1 year in seconds
+    includeSubDomains: true,
+    preload: true
+  },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  xContentTypeOptions: true,
+  xFrameOptions: { action: 'deny' }, // Prevent clickjacking
+  xXssProtection: true,
+}));
+// Note: app middlewares are now in app.js; only server startup logic remains here.
 
 //Add basic route
 
@@ -50,24 +53,7 @@ if (USE_HTTPS) {
   };
 }
 
-//Global rate limiting (100 requests per 15 minutes per IP)
-const limiter = rateLimit({
-    windowMs: 15 *60*1000,
-    max: 100,
-    standardHeaders:true,
-    legacyHeaders: false,
-});
-
-app.use(limiter);
-
-const loginLimiter = rateLimit({
-    windowMs: 15*60*1000,
-    max: 100,
-    message:"Too many login attempts. Please try again later",
-    standardHeaders: true,
-    legacyHeaders: false,
-
-})
+//Global rate limiting is configured in app.js
 
 
 

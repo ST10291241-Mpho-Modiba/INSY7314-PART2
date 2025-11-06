@@ -20,7 +20,12 @@ const userSchema = new mongoose.Schema({
     type: String,
      required: true,
     minLength: 6,
-   }  
+   },
+  role: {
+    type: String,
+    enum: ['user', 'employee'],
+    default: 'user'
+  }
 },{timestamps: true});
 //Hashing the passwrod before saving it 
 userSchema.pre('save', async function(next) {

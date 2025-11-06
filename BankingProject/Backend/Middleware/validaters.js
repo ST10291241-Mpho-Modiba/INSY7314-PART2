@@ -28,6 +28,63 @@ export const validatePayment =
 
 ];
 
+// SWIFT/BIC code validation: 8 or 11 alphanumeric characters (uppercase)
+export const validateSWIFTCode = [
+  body('swiftCode')
+    .notEmpty()
+    .withMessage('SWIFT/BIC code is required')
+    .matches(/^[A-Z0-9]{8}([A-Z0-9]{3})?$/)
+    .withMessage('SWIFT/BIC code must be 8 or 11 alphanumeric characters (uppercase)'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const errorMessages = errors.array().map(error => error.msg);
+      return res.status(400).json({
+        msg: errorMessages.join(', '),
+        errors: errors.array()
+      });
+    }
+    next();
+  }
+];
+
+// Enhanced input validation to block SQL injection and script tags
+export const sanitizeInput = (req, res, next) => {
+  // Recursively sanitize request body
+  const sanitize = (obj) => {
+    if (typeof obj === 'string') {
+      // Block SQL injection patterns and script tags
+      if (/['";\\-]/.test(obj) || /<script|<\/script>/i.test(obj)) {
+        throw new Error('Invalid input detected. SQL injection and script tags are not allowed.');
+      }
+      // Remove potentially dangerous characters
+      return obj.replace(/['";\\-]/g, '').replace(/<script|<\/script>/gi, '');
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(sanitize);
+    }
+    if (obj && typeof obj === 'object') {
+      const sanitized = {};
+      for (const key in obj) {
+        sanitized[key] = sanitize(obj[key]);
+      }
+      return sanitized;
+    }
+    return obj;
+  };
+
+  try {
+    if (req.body) {
+      req.body = sanitize(req.body);
+    }
+    next();
+  } catch (error) {
+    return res.status(400).json({
+      msg: error.message || 'Invalid input detected'
+    });
+  }
+};
+
 export const validateSignUp = [
 body('username')
 .notEmpty()

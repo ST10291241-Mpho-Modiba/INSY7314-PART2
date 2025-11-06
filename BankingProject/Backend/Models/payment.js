@@ -25,8 +25,20 @@ const paymentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'completed', 'failed'],
+    enum: ['pending', 'completed', 'failed', 'submitted_to_swift'],
     default: 'pending'
+  },
+  swiftCode: {
+    type: String,
+    trim: true,
+    match: [/^[A-Z0-9]{8}([A-Z0-9]{3})?$/, 'SWIFT/BIC code must be 8 or 11 alphanumeric characters (uppercase)']
+  },
+  submittedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  submittedAt: {
+    type: Date
   },
   transactionId: {
     type: String,
