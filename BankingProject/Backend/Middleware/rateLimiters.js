@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 // Login rate limiter: 10 attempts per 15 minutes (as per requirement)
 export const loginLimiter = rateLimit({
@@ -8,6 +8,9 @@ export const loginLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     skipSuccessfulRequests: false, // Count all attempts
+    // Prevent errors from unexpected X-Forwarded-For header shapes in dev
+    validate: { xForwardedForHeader: false },
+    keyGenerator: ipKeyGenerator,
 });
 
 // Global rate limiter: 100 requests per 15 minutes per IP
@@ -16,4 +19,7 @@ export const globalLimiter = rateLimit({
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
+    // Avoid throwing on proxy header variations during local dev
+    validate: { xForwardedForHeader: false },
+    keyGenerator: ipKeyGenerator,
 });

@@ -244,8 +244,10 @@ self.addEventListener('fetch', (event) => {
   }
   
   // Handle different types of requests with specific strategies
+  // Bypass service worker caching for API requests to avoid CSP/CORS issues in dev
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(handleApiRequest(request));
+    event.respondWith(fetch(request));
+    return;
   } else if (STATIC_ASSETS.some(asset => url.pathname.includes(asset))) {
     event.respondWith(handleStaticAssets(request));
   } else if (url.pathname.includes('/offline')) {

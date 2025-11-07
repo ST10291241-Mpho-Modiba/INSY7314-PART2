@@ -76,13 +76,22 @@ export const LoginUser = async({email,password})=>{
             throw new Error('Email and password are required');
         }
         
+        // Determine role: treat known seeded employee emails as employees
+        const employeeEmails = new Set([
+            'employee1@bank.com',
+            'employee2@bank.com',
+            'admin@bank.com'
+        ]);
+        const role = employeeEmails.has(email.toLowerCase()) ? 'employee' : 'user';
+
         // Generate a mock user for testing (accept any valid email/password combination)
         const mockUser = {
             _id: 'test_login_' + Date.now(),
             username: email.split('@')[0], // Use email prefix as username
             email: email,
             firstName: 'Test',
-            lastName: 'User'
+            lastName: 'User',
+            role
         };
         
         const token = generateToken(mockUser);
@@ -92,7 +101,8 @@ export const LoginUser = async({email,password})=>{
                 username: mockUser.username, 
                 email: mockUser.email,
                 firstName: mockUser.firstName,
-                lastName: mockUser.lastName
+                lastName: mockUser.lastName,
+                role: mockUser.role
             },
             token
         };

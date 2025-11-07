@@ -65,9 +65,13 @@ const EmployeeRoute = ({ children }) => {
 
 // Public Route Component (redirect if authenticated)
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   
   if (isAuthenticated) {
+    // Redirect based on user role
+    if (user?.role === 'employee') {
+      return <Navigate to="/employee" replace />;
+    }
     return <Navigate to="/payments" replace />;
   }
   
@@ -174,6 +178,15 @@ const AppRoutes = () => {
               </PublicRoute>
             } 
           />
+          {/* Explicit login route to prevent 404 when navigating to /login */}
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } 
+          />
           <Route 
             path="/signup" 
             element={
@@ -197,6 +210,11 @@ const AppRoutes = () => {
                 <EmployeePortal />
               </EmployeeRoute>
             }
+          />
+          {/* Alias for documentation: redirect /employee-portal to /employee */}
+          <Route 
+            path="/employee-portal" 
+            element={<Navigate to="/employee" replace />} 
           />
           <Route 
             path="/profile" 

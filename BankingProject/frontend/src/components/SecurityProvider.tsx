@@ -104,9 +104,18 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({
         csp.updateConfig({
           scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-          imgSrc: ["'self'", 'data:', 'https:'],
-          connectSrc: ["'self'", 'https://api.trae-api-sg.mchost.guru'],
+          imgSrc: ["'self'", 'data:', 'https:', 'http:'],
+          // Allow local backend connections during development
+          connectSrc: [
+            "'self'",
+            'http://localhost:5000',
+            'http://localhost:3001',
+            'ws://localhost:3001',
+            'https://api.trae-api-sg.mchost.guru'
+          ],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          // Disable upgrade-insecure-requests in dev so http backend works
+          upgradeInsecureRequests: false,
         });
         break;
       

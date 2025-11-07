@@ -218,11 +218,23 @@ const Login: React.FC = () => {
       
       // Handle offline mode
       if (!isOnline) {
+        // In development, serviceWorkerManager may be null (SW disabled)
+        if (!serviceWorkerManager) {
+          showError('Offline Mode', 'Offline login is unavailable in this environment. Please connect to the internet.');
+          return;
+        }
+
         const cachedUser = await serviceWorkerManager.getOfflineData(`user_${data.email}`);
         if (cachedUser && cachedUser.password === data.password) {
-          await login(cachedUser.user, 'offline_token');
+          const offlineUserData = {
+            ...cachedUser.user,
+            role: cachedUser.user.role || 'user'
+          };
+          await login(offlineUserData, 'offline_token');
           showInfo('Offline Mode', 'You are logged in offline mode. Some features may be limited.');
-          navigate('/payments');
+          // Navigate based on user role
+          const redirectTo = offlineUserData.role === 'employee' ? '/employee' : '/payments';
+          navigate(redirectTo);
           return;
         }
         showError('Offline Mode', 'Cannot login offline. Please connect to the internet.');
@@ -243,7 +255,7 @@ const Login: React.FC = () => {
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           screenResolution: `${window.screen.width}x${window.screen.height}`,
           windowSize: `${window.innerWidth}x${window.innerHeight}`,
-          isStandalone: serviceWorkerManager.isStandalone()
+          isStandalone: serviceWorkerManager?.isStandalone() ?? false
         }
       };
 
@@ -270,7 +282,7 @@ const Login: React.FC = () => {
       }
 
       // Cache user data for offline access
-      if (trustedDevice) {
+      if (trustedDevice && serviceWorkerManager) {
         await serviceWorkerManager.cacheOfflineData(`user_${data.email}`, {
           user: response.data.user,
           password: data.password, // In production, this should be hashed

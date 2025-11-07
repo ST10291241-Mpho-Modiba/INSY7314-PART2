@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ServiceWorkerManager } from '../utils/serviceWorker';
+import { ServiceWorkerManager, serviceWorkerManager as managerSingleton } from '../utils/serviceWorker';
 
 interface UseServiceWorkerReturn {
   serviceWorkerManager: ServiceWorkerManager | null;
@@ -28,10 +28,16 @@ export const useServiceWorker = (): UseServiceWorkerReturn => {
   useEffect(() => {
     const initializeServiceWorker = async () => {
       try {
+        // Avoid initializing service worker manager in development to prevent noisy IndexedDB errors
+        if (process.env.NODE_ENV !== 'production') {
+          setServiceWorkerManager(null);
+          managerRef.current = null;
+          return;
+        }
+
         if ('serviceWorker' in navigator) {
           const manager = new ServiceWorkerManager();
           // ServiceWorkerManager initializes automatically in constructor
-          
           managerRef.current = manager;
           setServiceWorkerManager(manager);
         }

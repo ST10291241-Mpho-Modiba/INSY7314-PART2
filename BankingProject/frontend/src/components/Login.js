@@ -128,15 +128,21 @@ const Login = () => {
         sessionStorage.setItem('token', token);
       }
 
-      // Update auth context
-      await login(response.data.user, token);
+      // Update auth context - ensure user object includes role
+      const userData = {
+        ...response.data.user,
+        role: response.data.user.role || 'user' // Default to 'user' if role not provided
+      };
+      await login(userData, token);
 
       showSuccess(
         'Welcome back!',
         'You have successfully logged in.'
       );
 
-      navigate('/payments');
+      // Navigate based on user role
+      const redirectTo = userData.role === 'employee' ? '/employee' : '/payments';
+      navigate(redirectTo);
     } catch (error) {
       // Handle failed login attempts
       const newAttempts = loginAttempts + 1;

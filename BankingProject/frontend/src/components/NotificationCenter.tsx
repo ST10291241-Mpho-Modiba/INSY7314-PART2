@@ -21,7 +21,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useSSE } from '../hooks/useSSE';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { notificationSlideIn } from '../utils/animations';
 import { announceToScreenReader } from '../utils/accessibility';
 

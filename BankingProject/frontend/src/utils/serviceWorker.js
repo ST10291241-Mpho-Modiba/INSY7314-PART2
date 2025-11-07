@@ -7,9 +7,25 @@ const isLocalhost = Boolean(
   )
 );
 
+// Robust runtime dev detection: disable SW on localhost even if NODE_ENV is mis-set
+const isDevRuntime = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production') || isLocalhost;
+
 // Service Worker registration with enhanced configuration
 export function register(config) {
   if ('serviceWorker' in navigator) {
+    // Disable service worker in development to avoid stale caches and SW-related errors
+    const isDev = isDevRuntime;
+    if (isDev) {
+      try {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((r) => r.unregister());
+        });
+      } catch (e) {
+        // no-op
+      }
+      console.log('Service Worker: Skipped registration in development');
+      return;
+    }
     const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
     if (publicUrl.origin !== window.location.origin) {
       return;
@@ -134,6 +150,11 @@ export class ServiceWorkerManager {
     this.isOnline = navigator.onLine;
     this.syncInProgress = false;
     this.offlineData = new Map();
+    // In dev runtime, do not set up SW or IndexedDB to avoid noisy errors
+    if (isDevRuntime) {
+      this.db = null;
+      return;
+    }
     this.setupEventListeners();
     this.initializeOfflineStorage();
   }
@@ -326,7 +347,8 @@ export class ServiceWorkerManager {
       if (this.db) {
         const transaction = this.db.transaction(['offlineData'], 'readonly');
         const store = transaction.objectStore('offlineData');
-        const result = await store.get(key);
+        const req = store.get(key);
+        const result = await this._awaitIDBRequest(req);
         
         if (result && (!result.expiresAt || new Date() < new Date(result.expiresAt))) {
           // Update memory cache
@@ -402,20 +424,25 @@ export class ServiceWorkerManager {
         request = store.getAll();
       }
       
-      const result = await request;
+      const result = await this._awaitIDBRequest(request);
+      const items = Array.isArray(result)
+        ? result
+        : result && typeof result === 'object'
+          ? Object.values(result)
+          : [];
       
       // Filter by priority if specified
       if (options.priority) {
-        return result.filter(item => item.priority === options.priority);
+        return items.filter(item => item.priority === options.priority);
       }
       
       // Filter expired transactions
       if (!options.includeExpired) {
         const now = new Date();
-        return result.filter(item => !item.expiresAt || new Date(item.expiresAt) > now);
+        return items.filter(item => !item.expiresAt || new Date(item.expiresAt) > now);
       }
       
-      return result;
+      return items;
     } catch (error) {
       console.error('Service Worker Manager: Failed to get queued transactions', error);
       return [];
@@ -439,6 +466,11 @@ export class ServiceWorkerManager {
 
   // Trigger background sync
   async triggerBackgroundSync() {
+    // Short-circuit in development: avoid interacting with navigator.serviceWorker
+    if (isDevRuntime) {
+      console.log('Service Worker Manager: Background sync skipped in development');
+      return;
+    }
     if (this.syncInProgress) {
       console.log('Service Worker Manager: Sync already in progress');
       return;
@@ -543,7 +575,7 @@ export class ServiceWorkerManager {
       const index = store.index('type');
       const request = index.getAll('api_request');
       
-      return await request;
+      return await this._awaitIDBRequest(request);
     } catch (error) {
       console.error('Service Worker Manager: Failed to get queued API requests', error);
       return [];
@@ -552,6 +584,10 @@ export class ServiceWorkerManager {
 
   // Open IndexedDB connection
   openDB() {
+    // Short-circuit in development
+    if (isDevRuntime) {
+      return Promise.resolve(null);
+    }
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('BankingAppOfflineDB', 2);
       
@@ -599,9 +635,14 @@ export class ServiceWorkerManager {
       const store = transaction.objectStore('offlineData');
       const request = store.getAll();
       
-      const results = await request;
+      const results = await this._awaitIDBRequest(request);
+      const list = Array.isArray(results)
+        ? results
+        : results && typeof results === 'object'
+          ? Object.values(results)
+          : [];
       
-      results.forEach(item => {
+      (Array.isArray(list) ? list : []).forEach(item => {
         this.offlineData.set(item.key, item);
       });
       
@@ -609,6 +650,14 @@ export class ServiceWorkerManager {
     } catch (error) {
       console.error('Service Worker Manager: Failed to load offline data', error);
     }
+  }
+
+  // Helper: await native IndexedDB request and return its result
+  _awaitIDBRequest(request) {
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
   }
 
   // Check if app is running in standalone mode (PWA)
@@ -749,8 +798,10 @@ export class ServiceWorkerManager {
   }
 }
 
-// Create singleton instance
-export const serviceWorkerManager = new ServiceWorkerManager();
+// Create singleton instance only outside development to avoid noisy errors in dev
+export const serviceWorkerManager = (!isDevRuntime)
+  ? new ServiceWorkerManager()
+  : null;
 
 // Export utility functions
 export const offlineUtils = {
@@ -813,7 +864,7 @@ export const offlineUtils = {
 };
 
 // Initialize service worker on module load
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevRuntime) {
   // Auto-register service worker
   register({
     onUpdate: (registration) => {

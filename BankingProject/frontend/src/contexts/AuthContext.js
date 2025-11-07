@@ -3,7 +3,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 // Initial state
 const initialState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: sessionStorage.getItem('token') || localStorage.getItem('token'),
   isAuthenticated: false,
   isLoading: true,
   error: null,
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is authenticated on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     if (token) {
       // Verify token validity here
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
@@ -111,7 +111,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginSuccess = (user, token) => {
-    localStorage.setItem('token', token);
+    // Do not force localStorage; keep existing storage choice
+    const existing = sessionStorage.getItem('token') || localStorage.getItem('token');
+    if (!existing) {
+      // Default to sessionStorage for security; Login component handles rememberMe
+      sessionStorage.setItem('token', token);
+    }
     dispatch({ 
       type: AUTH_ACTIONS.LOGIN_SUCCESS, 
       payload: { user, token } 
@@ -120,6 +125,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
   };
 

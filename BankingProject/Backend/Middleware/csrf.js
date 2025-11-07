@@ -39,6 +39,13 @@ export const validateCSRFToken = (req, res, next) => {
     return next();
   }
 
+  // Ensure session exists
+  if (!req.session) {
+    return res.status(403).json({
+      msg: 'Session not established. Please refresh the page and try again.'
+    });
+  }
+
   // Get token from header or body
   const token = req.headers['x-csrf-token'] || req.body.csrfToken || req.query.csrfToken;
   const sessionToken = req.session?.csrfToken;
@@ -50,14 +57,7 @@ export const validateCSRFToken = (req, res, next) => {
     });
   }
 
-  // Validate token matches session
-  if (token !== sessionToken) {
-    return res.status(403).json({
-      msg: 'Invalid CSRF token. Please refresh the page and try again.'
-    });
-  }
-
-  // Check if token exists in store
+  // Check if token exists in store first (more reliable than session)
   const tokenData = csrfTokens.get(token);
   if (!tokenData) {
     return res.status(403).json({
@@ -68,8 +68,21 @@ export const validateCSRFToken = (req, res, next) => {
   // Check if token expired
   if (Date.now() > tokenData.expiresAt) {
     csrfTokens.delete(token);
+    if (req.session.csrfToken === token) {
+      delete req.session.csrfToken;
+    }
     return res.status(403).json({
       msg: 'CSRF token expired. Please refresh the page and try again.'
+    });
+  }
+
+  // Validate token matches session (if session token exists)
+  // If session token doesn't exist, update it with the valid token
+  if (!sessionToken) {
+    req.session.csrfToken = token;
+  } else if (token !== sessionToken) {
+    return res.status(403).json({
+      msg: 'Invalid CSRF token. Please refresh the page and try again.'
     });
   }
 

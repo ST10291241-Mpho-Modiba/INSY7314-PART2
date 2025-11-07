@@ -365,4 +365,5 @@ export class SSEManager {
 }
 
 // Create singleton instance
-export const sseManager: SSEManager = new SSEManager();
+const sseManagerInstance = new SSEManager();
+export const sseManager = sseManagerInstance;

@@ -45,5 +45,6 @@ userSchema.methods.comparePasswords =
 function(candidatePassword){
 return bcrypt.compare(candidatePassword,this.password);
 }
-const User = mongoose.model('user',userSchema);
+// Mongoose model name should match refs used across schemas
+const User = mongoose.model('User', userSchema);
 export default User

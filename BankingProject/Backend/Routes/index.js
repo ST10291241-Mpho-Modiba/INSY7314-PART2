@@ -17,8 +17,9 @@ router.get('/health', (req, res) => {
   });
 });
 
-// CSRF token endpoint for clients/tests to retrieve token without DB operations
-router.get('/csrf-token', generateCSRFToken, (req, res) => {
+// CSRF token endpoint for clients/tests to retrieve token
+// Requires authentication to ensure session is established
+router.get('/csrf-token', auth, generateCSRFToken, (req, res) => {
   res.status(200).json({ csrfToken: res.locals.csrfToken });
 });
 

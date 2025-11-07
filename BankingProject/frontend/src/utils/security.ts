@@ -58,9 +58,16 @@ export class CSPManager {
       ],
       connectSrc: [
         "'self'",
-        'https://api.trae-api-sg.mchost.guru', // API domain
-        'wss://*.supabase.co', // WebSocket for real-time features
-        'https://*.supabase.co', // Supabase
+        // Local development endpoints
+        'http://localhost:5000',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'ws://localhost:3000',
+        'ws://localhost:3001',
+        // Production / external APIs
+        'https://api.trae-api-sg.mchost.guru',
+        'wss://*.supabase.co',
+        'https://*.supabase.co',
       ],
       fontSrc: [
         "'self'",
@@ -73,7 +80,8 @@ export class CSPManager {
       baseUri: ["'self'"],
       formAction: ["'self'"],
       frameAncestors: ["'none'"],
-      upgradeInsecureRequests: true,
+      // In dev over http, do not auto-upgrade requests
+      upgradeInsecureRequests: (typeof window !== 'undefined' && window.location.protocol === 'https:'),
     };
   }
   

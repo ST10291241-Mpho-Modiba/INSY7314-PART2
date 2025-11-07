@@ -92,6 +92,11 @@ export const useOfflineStatus = () => {
 
   const loadQueuedTransactions = async () => {
     try {
+      if (!serviceWorkerManager) {
+        // In development, the service worker manager may be disabled
+        setQueuedTransactions([]);
+        return;
+      }
       const transactions = await serviceWorkerManager.getQueuedTransactions();
       setQueuedTransactions(transactions);
     } catch (error) {
@@ -101,6 +106,10 @@ export const useOfflineStatus = () => {
 
   const queueTransaction = async (transactionData) => {
     try {
+      if (!serviceWorkerManager) {
+        console.warn('Service worker manager unavailable; offline queue disabled in this environment');
+        return null;
+      }
       const queuedTransaction = await serviceWorkerManager.queueTransaction(transactionData);
       setQueuedTransactions(prev => [...prev, queuedTransaction]);
       return queuedTransaction;
@@ -148,11 +157,13 @@ export const useOfflineStatus = () => {
     
     try {
       // Sync queued transactions
-      for (const transaction of queuedTransactions) {
-        try {
-          await serviceWorkerManager.syncTransaction(transaction);
-        } catch (error) {
-          console.error('Failed to sync transaction:', error);
+      if (serviceWorkerManager) {
+        for (const transaction of queuedTransactions) {
+          try {
+            await serviceWorkerManager.syncTransaction(transaction);
+          } catch (error) {
+            console.error('Failed to sync transaction:', error);
+          }
         }
       }
       

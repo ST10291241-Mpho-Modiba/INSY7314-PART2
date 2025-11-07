@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 import User from '../Models/user.js';
 import dotenv from 'dotenv';
 import connectDB from '../db/conn.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 dotenv.config({ path: './.env' });
 
@@ -101,9 +103,19 @@ const seedEmployees = async () => {
   }
 };
 
-// Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedEmployees();
+// Run if called directly (cross-platform ESM main check)
+try {
+  const thisFilePath = fileURLToPath(import.meta.url);
+  const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+  const thisResolved = path.resolve(thisFilePath);
+  if (invokedPath && thisResolved && invokedPath === thisResolved) {
+    seedEmployees();
+  }
+} catch (e) {
+  // Fallback: if detection fails, still attempt to run when directly invoked
+  if (process.argv[1] && process.argv[1].includes('seedEmployees.js')) {
+    seedEmployees();
+  }
 }
 
 export default seedEmployees;
