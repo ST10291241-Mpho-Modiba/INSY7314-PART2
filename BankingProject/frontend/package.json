@@ -15,7 +15,7 @@
     "framer-motion": "^11.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-hook-form": "^7.47.0",
+    "react-hook-form": "^7.65.0",
     "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1",
     "sonner": "^1.2.0",
